@@ -7,6 +7,7 @@ import h5py
 import numpy as np
 import glob
 import datetime
+import os
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -143,10 +144,32 @@ class UI(QMainWindow):
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
 
-    def prepareDatabase(self, direct):
-        files = glob.glob(direct + "\\*.hdf5", recursive=True)
+    def get_filepaths(self, directory):
+        file_paths = []  # List which will store all of the full filepaths.
 
-        for file in files:
+        # Walk the tree.
+        for root, directories, files in os.walk(directory):
+            for filename in files:
+                # Join the two strings in order to form the full filepath.
+                filepath = os.path.join(root, filename)
+                file_paths.append(filepath)  # Add it to the list.
+
+        return file_paths
+
+    def prepareDatabase(self, directory):
+        # files = glob.glob(directory + "\\*.hdf5", recursive=True)
+
+        file_paths = []
+
+        for root, directories, files in os.walk(directory):
+            for filename in files:
+                if filename[-5:] == ".hdf5":
+                    # Join the two strings in order to form the full filepath.
+                    filepath = os.path.join(root, filename)
+                    file_paths.append(filepath)  # Add it to the list.
+
+
+        for file in file_paths:
             name = ""
             i = 1
             character = file[-i]
@@ -156,42 +179,47 @@ class UI(QMainWindow):
                 character = file[-i]
 
             f = h5py.File(file, "r")
+            try:
+                # get info to put into database
+                data = f['entry0']['counter0']['data'][()]
+                scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
+                start_time = f['entry0']['start_time'][()].decode('utf8')
+                end_time = f['entry0']['end_time'][()].decode('utf8')
+                counter0_attrs = list(f['entry0']['counter0'].attrs)
+                # 'signal' is in counter0_attrs list
+                ctr0_signal = f['entry0']['counter0'].attrs['signal']
+                ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
 
-            # get info to put into database
-            data = f['entry0']['counter0']['data'][()]
-            scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
-            start_time = f['entry0']['start_time'][()].decode('utf8')
-            end_time = f['entry0']['end_time'][()].decode('utf8')
-            counter0_attrs = list(f['entry0']['counter0'].attrs)
-            # 'signal' is in counter0_attrs list
-            ctr0_signal = f['entry0']['counter0'].attrs['signal']
-            ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
+                xpoints = f['entry0']['counter0']['sample_x'][()]
+                xstart = xpoints[0]
+                xstop = xpoints[-1]
+                xrange = np.fabs(xstop - xstart)
+                ypoints = f['entry0']['counter0']['sample_y'][()]
+                ystart = ypoints[0]
+                ystop = ypoints[-1]
+                yrange = np.fabs(ystop - ystart)
 
-            xpoints = f['entry0']['counter0']['sample_x'][()]
-            xstart = xpoints[0]
-            xstop = xpoints[-1]
-            xrange = np.fabs(xstop - xstart)
-            ypoints = f['entry0']['counter0']['sample_y'][()]
-            ystart = ypoints[0]
-            ystop = ypoints[-1]
-            yrange = np.fabs(ystop - ystart)
+                energies_lst = f['entry0']['counter0']['energy'][()]
+            except:
+                self.textBrowser.append("ERROR: Cannot gather data from the file.")
+            # else:
+                result = self.collection.insert_one({"name": name,
+                                                     "file_path": file,
+                                                     "scan_type": scan_type,
+                                                     "start_time": start_time,
+                                                     "end_time": end_time,
+                                                     "xrange": xrange,
+                                                     "yrange": yrange,
+                                                     "xresolution": len(xpoints),
+                                                     "yresolution": len(ypoints),
+                                                     # # "energies": energies_lst
+                                                     })
+                self.fileCB.addItem(name)
+            finally:
+                # clean up
+                f.close()
 
-            energies_lst = f['entry0']['counter0']['energy'][()]
 
-            f.close()
-
-            result = self.collection.insert_one({"name": name,
-                                                 "file_path": file,
-                                                 "scan_type": scan_type,
-                                                 "start_time": start_time,
-                                                 "end_time": end_time,
-                                                 "xrange": xrange,
-                                                 "yrange": yrange,
-                                                 "xresolution": len(xpoints),
-                                                 "yresolution": len(ypoints),
-                                                 # "energies": energies_lst
-                                                 })
-            self.fileCB.addItem(name)
             self.textBrowser.append(name)
 
 def main():
