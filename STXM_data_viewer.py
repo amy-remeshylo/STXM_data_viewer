@@ -133,30 +133,20 @@ class UI(QMainWindow):
         self.energy = False
 
     def submit(self):
-        # print message onto log
         self.textBrowser.append("Filters submitted. Preparing database.")
-        # if file directory is present, create thread to make database
-        # and produce a dialog window with progress bar to track thread
         if self.dirLE.text() != "":
-            self.worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
-            self.worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
-            # self.worker.signals.progress.connect(lambda: self.trackProgress(self.worker.signals.progress))
-            self.threadpool.start(self.worker)
-            self.dlg = progressDialog()
-            self.dlg.exec_()
-        # otherwise, print error to log
+            worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
+            worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
+            self.threadpool.start(worker)
+            dlg = progressDialog()
+            dlg.exec_()
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
 
-    # def trackProgress(self, progress):
-    #     self.dlg.progBar.setValue(progress)
-
     def prepareDatabase(self, direct):
-        # create list of file pathnames using glob to grab only hdf5 files
         files = glob.glob(direct + "\\*.hdf5", recursive=True)
 
         for file in files:
-            # grab file name from full path
             name = ""
             i = 1
             character = file[-i]
@@ -165,7 +155,6 @@ class UI(QMainWindow):
                 i += 1
                 character = file[-i]
 
-            # open file
             f = h5py.File(file, "r")
 
             # get info to put into database
@@ -191,25 +180,19 @@ class UI(QMainWindow):
 
             f.close()
 
-            # put info into database
             result = self.collection.insert_one({"name": name,
                                                  "file_path": file,
                                                  "scan_type": scan_type,
                                                  "start_time": start_time,
                                                  "end_time": end_time,
-                                                 "xresolution": len(xpoints),
-                                                 "yresolution": len(ypoints),
                                                  "xrange": xrange,
                                                  "yrange": yrange,
-                                                 # "energies": energies_lst[0]
+                                                 "xresolution": len(xpoints),
+                                                 "yresolution": len(ypoints),
+                                                 # "energies": energies_lst
                                                  })
-
-            # add file name to dropdown menu
             self.fileCB.addItem(name)
-            # append file name to log
             self.textBrowser.append(name)
-
-            # self.worker.signals.progress.emit(100)
 
 def main():
     app = QApplication(sys.argv)
