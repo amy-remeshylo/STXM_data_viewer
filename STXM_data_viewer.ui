@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1225</width>
-    <height>820</height>
+    <height>789</height>
    </rect>
   </property>
   <property name="font">
@@ -23,7 +23,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>410</y>
+      <y>450</y>
       <width>221</width>
       <height>16</height>
      </rect>
@@ -48,7 +48,7 @@
       <x>10</x>
       <y>10</y>
       <width>501</width>
-      <height>371</height>
+      <height>421</height>
      </rect>
     </property>
     <property name="title">
@@ -68,9 +68,9 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>270</y>
+       <y>265</y>
        <width>141</width>
-       <height>20</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -148,9 +148,9 @@
      <property name="geometry">
       <rect>
        <x>240</x>
-       <y>190</y>
+       <y>185</y>
        <width>181</width>
-       <height>21</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -184,9 +184,9 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>190</y>
+       <y>185</y>
        <width>91</width>
-       <height>21</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -322,14 +322,37 @@
     <widget class="QPushButton" name="submitBTN">
      <property name="geometry">
       <rect>
-       <x>210</x>
-       <y>320</y>
+       <x>200</x>
+       <y>370</y>
        <width>81</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
       <string>Submit</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="dirLE">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>320</y>
+       <width>211</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="dirLBL">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>320</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>File Directory (Required): </string>
      </property>
     </widget>
    </widget>
@@ -348,6 +371,19 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>651</width>
+       <height>671</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
    <widget class="QComboBox" name="fileCB">
     <property name="geometry">

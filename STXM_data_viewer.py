@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import *
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 import sys
+# import pymongo
+# from pymongo import MongoClient
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -23,19 +25,21 @@ class Worker(QRunnable):
             self.signals.finished.emit()
 
 class progressDialog(QDialog):
-    def __init(self, parent):
-        super(progressDialog,self).__init__(parent=parent)
+    def __init__(self):
+        super(progressDialog, self).__init__()
 
-        self.setWindowTitle("Preparing Database...")
-        self.progLBL = QLabel("Preparing Database...")
-        self.progBar = QProgressBar()
-
-        self.layout = QVBoxLayout()
-
-        self.layout.addWidget(self.progLBL)
-        self.layout.addWidget(self.progBar)
-
-        self.setLayout(self.layout)
+        uic.loadUi("preparing_database_dlg.ui", self)
+        self.setWindowTitle("Preparing Database")
+        # self.progLBL = QLabel("Preparing Database...")
+        # self.progBar = QProgressBar()
+        # self.progBar.setAlignment(Qt.AlignHCenter)
+        #
+        # self.layout = QVBoxLayout()
+        #
+        # self.layout.addWidget(self.progLBL)
+        # self.layout.addWidget(self.progBar)
+        #
+        # self.setLayout(self.layout)
 
 
 class UI(QMainWindow):
@@ -56,6 +60,8 @@ class UI(QMainWindow):
         self.yresLBL = self.findChild(QLabel, "yresLBL")
         self.energyLBL = self.findChild(QLabel, "energyLBL")
         self.toLBL = self.findChild(QLabel, "toLBL")
+        self.dirLBL = self.findChild(QLabel, "dirLBL")
+        self.imgLBL = self.findChild(QLabel, "imgLBL")
 
         self.startDT = self.findChild(QDateTimeEdit, "startDT")
         self.endDT = self.findChild(QDateTimeEdit, "endDT")
@@ -74,12 +80,20 @@ class UI(QMainWindow):
 
         self.textBrowser = self.findChild(QTextBrowser, "textBrowser")
 
+        self.dirLE = self.findChild(QLineEdit, "dirLE")
+
         self.filterGB = self.findChild(QGroupBox, "filtersGB")
 
         self.submitBTN = self.findChild(QPushButton, "submitBTN")
 
         # set up threadpool
         self.threadpool = QThreadPool()
+
+        # set up mongodb database
+        # self.cluster = "mongodb://localhost:27017"
+        # self.client =MongoClient(self.cluster)
+        # self.db = self.client("STXM_data_viewer")
+        # self.collection = self.db("STXM_data")
 
         # connect signals to slots
         self.connectSignals()
@@ -92,9 +106,8 @@ class UI(QMainWindow):
         worker = Worker(self.prepareDatabase)
         worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
         self.threadpool.start(worker)
-        dlg = progressDialog(parent=self)
-        # QMessageBox.about(self,"Preparing Database...","Preparing Database")
-        dlg.show()
+        dlg = progressDialog()
+        dlg.exec_()
 
     def prepareDatabase(self):
         pass
