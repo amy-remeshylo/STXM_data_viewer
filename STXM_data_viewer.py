@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import h5py
 import numpy as np
 import glob
+import datetime
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -31,16 +32,9 @@ class progressDialog(QDialog):
 
         uic.loadUi("preparing_database_dlg.ui", self)
         self.setWindowTitle("Preparing Database")
-        # self.progLBL = QLabel("Preparing Database...")
-        # self.progBar = QProgressBar()
-        # self.progBar.setAlignment(Qt.AlignHCenter)
-        #
-        # self.layout = QVBoxLayout()
-        #
-        # self.layout.addWidget(self.progLBL)
-        # self.layout.addWidget(self.progBar)
-        #
-        # self.setLayout(self.layout)
+
+        self.progBar = self.findChild(QProgressBar, "progressBar")
+        self.progBar.setValue(0)
 
 
 class UI(QMainWindow):
@@ -86,6 +80,17 @@ class UI(QMainWindow):
         self.filterGB = self.findChild(QGroupBox, "filtersGB")
 
         self.submitBTN = self.findChild(QPushButton, "submitBTN")
+        self.clearBTN = self.findChild(QPushButton, "clearBTN")
+
+        # clear filters
+        self.scan_type = False
+        self.start_date = False
+        self.end_date = False
+        self.xres = False
+        self.yres = False
+        self.xrange = False
+        self.yrange = False
+        self.energy = False
 
         # set up threadpool
         self.threadpool = QThreadPool()
@@ -100,22 +105,58 @@ class UI(QMainWindow):
 
         # connect signals to slots
         self.submitBTN.clicked.connect(self.submit)
+        self.clearBTN.clicked.connect(self.clear)
+
+    def clear(self):
+        # show clear message on text browser
+        self.textBrowser.append("Filters Cleared.")
+        # clear line edit and set all spin boxes, combo boxes, and date times back to default
+        self.dirLE.setText("")
+        self.xrangeSB.setValue(0)
+        self.yrangeSB.setValue(0)
+        self.xresSB.setValue(0)
+        self.yresSB.setValue(0)
+        self.eminSB.setValue(0)
+        self.emaxSB.setValue(0)
+        self.scanCB.setCurrentIndex(0)
+        self.startDT.setDateTime(datetime.datetime(2000, 1, 1, 00, 00))
+        self.endDT.setDateTime(datetime.datetime(2000, 1, 1, 00, 00))
+
+        # clear filters
+        self.scan_type = False
+        self.start_date = False
+        self.end_date = False
+        self.xres = False
+        self.yres = False
+        self.xrange = False
+        self.yrange = False
+        self.energy = False
 
     def submit(self):
+        # print message onto log
         self.textBrowser.append("Filters submitted. Preparing database.")
+        # if file directory is present, create thread to make database
+        # and produce a dialog window with progress bar to track thread
         if self.dirLE.text() != "":
-            worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
-            worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
-            self.threadpool.start(worker)
-            dlg = progressDialog()
-            dlg.exec_()
+            self.worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
+            self.worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
+            # self.worker.signals.progress.connect(lambda: self.trackProgress(self.worker.signals.progress))
+            self.threadpool.start(self.worker)
+            self.dlg = progressDialog()
+            self.dlg.exec_()
+        # otherwise, print error to log
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
 
-    def prepareDatabase(self, dir):
-        files = glob.glob(dir + "\\*.hdf5", recursive=True)
+    # def trackProgress(self, progress):
+    #     self.dlg.progBar.setValue(progress)
+
+    def prepareDatabase(self, direct):
+        # create list of file pathnames using glob to grab only hdf5 files
+        files = glob.glob(direct + "\\*.hdf5", recursive=True)
 
         for file in files:
+            # grab file name from full path
             name = ""
             i = 1
             character = file[-i]
@@ -124,10 +165,8 @@ class UI(QMainWindow):
                 i += 1
                 character = file[-i]
 
+            # open file
             f = h5py.File(file, "r")
-            #
-            # for item in f.attrs.keys():
-            #     print(f'{item} : {f.attrs[item]}')
 
             # get info to put into database
             data = f['entry0']['counter0']['data'][()]
@@ -152,17 +191,25 @@ class UI(QMainWindow):
 
             f.close()
 
+            # put info into database
             result = self.collection.insert_one({"name": name,
                                                  "file_path": file,
                                                  "scan_type": scan_type,
                                                  "start_time": start_time,
                                                  "end_time": end_time,
+                                                 "xresolution": len(xpoints),
+                                                 "yresolution": len(ypoints),
                                                  "xrange": xrange,
                                                  "yrange": yrange,
-                                                 # "energies": energies_lst
+                                                 # "energies": energies_lst[0]
                                                  })
+
+            # add file name to dropdown menu
             self.fileCB.addItem(name)
+            # append file name to log
             self.textBrowser.append(name)
+
+            # self.worker.signals.progress.emit(100)
 
 def main():
     app = QApplication(sys.argv)

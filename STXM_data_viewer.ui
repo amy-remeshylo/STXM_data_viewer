@@ -309,7 +309,7 @@
     <widget class="QPushButton" name="submitBTN">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>140</x>
        <y>370</y>
        <width>81</width>
        <height>31</height>
@@ -340,6 +340,19 @@
      </property>
      <property name="text">
       <string>File Directory (Required): </string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="clearBTN">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>370</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Clear</string>
      </property>
     </widget>
    </widget>
