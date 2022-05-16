@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
-from PyQt5.QtGui import *
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 import sys
-# import pymongo
-# from pymongo import MongoClient
+from pymongo import MongoClient
+import os
+import glob
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -21,7 +21,7 @@ class Worker(QRunnable):
             self.signals = WorkerSignals()
 
         def run(self):
-            result = self.fn(*self.args, **self.kwargs)
+            self.fn(*self.args, **self.kwargs)
             self.signals.finished.emit()
 
 class progressDialog(QDialog):
@@ -90,27 +90,42 @@ class UI(QMainWindow):
         self.threadpool = QThreadPool()
 
         # set up mongodb database
-        # self.cluster = "mongodb://localhost:27017"
-        # self.client =MongoClient(self.cluster)
-        # self.db = self.client("STXM_data_viewer")
-        # self.collection = self.db("STXM_data")
+        self.cluster = "mongodb://localhost:27017"
+        self.client = MongoClient(self.cluster)
+        self.db = self.client["STXM_data_viewer"]
+        self.collection = self.db["STXM_data"]
+        # start with a cleared db
+        self.collection.delete_many({})
 
         # connect signals to slots
-        self.connectSignals()
-
-    def connectSignals(self):
         self.submitBTN.clicked.connect(self.submit)
 
     def submit(self):
         self.textBrowser.append("Filters submitted. Preparing database.")
-        worker = Worker(self.prepareDatabase)
-        worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
-        self.threadpool.start(worker)
-        dlg = progressDialog()
-        dlg.exec_()
+        if self.dirLE.text() != "":
+            worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
+            worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
+            self.threadpool.start(worker)
+            dlg = progressDialog()
+            dlg.exec_()
+        else:
+            self.textBrowser.append("ERROR: File Directory field is required.")
 
-    def prepareDatabase(self):
-        pass
+    def prepareDatabase(self, dir):
+        files = glob.glob(dir + "\\*.hdf5", recursive=True)
+
+        for file in files:
+            name = ""
+            i = 1
+            character = file[-i]
+            while character != "\\":
+                name = character + name
+                i += 1
+                character = file[-i]
+
+            result = self.collection.insert_one({"name": name})
+            self.fileCB.addItem(name)
+            self.textBrowser.append(name)
 
 def main():
     app = QApplication(sys.argv)
