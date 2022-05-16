@@ -3,7 +3,8 @@ from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 import sys
 from pymongo import MongoClient
-import os
+import h5py
+import numpy as np
 import glob
 
 class WorkerSignals(QObject):
@@ -123,7 +124,43 @@ class UI(QMainWindow):
                 i += 1
                 character = file[-i]
 
-            result = self.collection.insert_one({"name": name})
+            f = h5py.File(file, "r")
+            #
+            # for item in f.attrs.keys():
+            #     print(f'{item} : {f.attrs[item]}')
+
+            # get info to put into database
+            data = f['entry0']['counter0']['data'][()]
+            scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
+            start_time = f['entry0']['start_time'][()].decode('utf8')
+            end_time = f['entry0']['end_time'][()].decode('utf8')
+            counter0_attrs = list(f['entry0']['counter0'].attrs)
+            # 'signal' is in counter0_attrs list
+            ctr0_signal = f['entry0']['counter0'].attrs['signal']
+            ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
+
+            xpoints = f['entry0']['counter0']['sample_x'][()]
+            xstart = xpoints[0]
+            xstop = xpoints[-1]
+            xrange = np.fabs(xstop - xstart)
+            ypoints = f['entry0']['counter0']['sample_y'][()]
+            ystart = ypoints[0]
+            ystop = ypoints[-1]
+            yrange = np.fabs(ystop - ystart)
+
+            energies_lst = f['entry0']['counter0']['energy'][()]
+
+            f.close()
+
+            result = self.collection.insert_one({"name": name,
+                                                 "file_path": file,
+                                                 "scan_type": scan_type,
+                                                 "start_time": start_time,
+                                                 "end_time": end_time,
+                                                 "xrange": xrange,
+                                                 "yrange": yrange,
+                                                 # "energies": energies_lst
+                                                 })
             self.fileCB.addItem(name)
             self.textBrowser.append(name)
 
