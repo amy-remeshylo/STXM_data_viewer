@@ -44,9 +44,9 @@
     <widget class="QSpinBox" name="yrangeSB">
      <property name="geometry">
       <rect>
-       <x>430</x>
+       <x>420</x>
        <y>240</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -85,9 +85,9 @@
     <widget class="QSpinBox" name="eminSB">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>170</x>
        <y>320</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -108,9 +108,9 @@
     <widget class="QSpinBox" name="yresSB">
      <property name="geometry">
       <rect>
-       <x>430</x>
+       <x>420</x>
        <y>280</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -196,9 +196,9 @@
     <widget class="QSpinBox" name="emaxSB">
      <property name="geometry">
       <rect>
-       <x>300</x>
+       <x>290</x>
        <y>320</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -206,9 +206,9 @@
     <widget class="QSpinBox" name="xrangeSB">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>170</x>
        <y>240</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -299,9 +299,9 @@
     <widget class="QSpinBox" name="xresSB">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>170</x>
        <y>280</y>
-       <width>51</width>
+       <width>61</width>
        <height>22</height>
       </rect>
      </property>
@@ -371,17 +371,23 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="imgLBL">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>0</y>
-       <width>651</width>
+       <width>631</width>
        <height>671</height>
       </rect>
      </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>white.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>

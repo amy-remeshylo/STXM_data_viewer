@@ -4,11 +4,13 @@ from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 from PyQt5 import QtGui
 import sys
 from pymongo import MongoClient
+import bson
 import h5py
 import numpy as np
 import glob
 import datetime
 import os
+import pickle
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -29,17 +31,6 @@ class Worker(QRunnable):
         def run(self):
             self.fn(*self.args, **self.kwargs)
             self.signals.finished.emit()
-
-# class progressDialog(QDialog):
-#     def __init__(self):
-#         super(progressDialog, self).__init__()
-#
-#         uic.loadUi("preparing_database_dlg.ui", self)
-#         self.setWindowTitle("Preparing Database")
-#
-#         self.progBar = self.findChild(QProgressBar, "progressBar")
-#         self.progBar.setValue(0)
-
 
 class UI(QMainWindow):
     def __init__(self):
@@ -66,11 +57,17 @@ class UI(QMainWindow):
         self.endDT = self.findChild(QDateTimeEdit, "endDT")
 
         self.xrangeSB = self.findChild(QSpinBox, "xrangeSB")
+        self.xrangeSB.setMaximum(9999)
         self.yrangeSB = self.findChild(QSpinBox, "yrangeSB")
+        self.yrangeSB.setMaximum(9999)
         self.xresSB = self.findChild(QSpinBox, "xresSB")
+        self.xresSB.setMaximum(9999)
         self.yresSB = self.findChild(QSpinBox, "yresSB")
+        self.yresSB.setMaximum(9999)
         self.eminSB = self.findChild(QSpinBox, "eminSB")
+        self.eminSB.setMaximum(9999)
         self.emaxSB = self.findChild(QSpinBox, "emaxSB")
+        self.emaxSB.setMaximum(9999)
 
         self.scanCB = self.findChild(QComboBox, "scanCB")
         self.fileCB = self.findChild(QComboBox, "fileCB")
@@ -114,6 +111,7 @@ class UI(QMainWindow):
         # connect signals to slots
         self.submitBTN.clicked.connect(self.submit)
         self.clearBTN.clicked.connect(self.clear)
+        self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
     def clear(self):
         # show clear message on text browser
@@ -148,6 +146,21 @@ class UI(QMainWindow):
         self.xrange = False
         self.yrange = False
         self.energy = False
+
+    def displayHDF(self, filename):
+        if filename == "Select a File":
+            pixmap = QtGui.QPixmap("white.png")
+        else:
+            self.textBrowser.append("Displaying file " + filename)
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+            db_file = self.collection.find_one({"name": filename})
+            data = pickle.loads(db_file["data"])
+            img = QtGui.QImage(data, data.shape[1], data.shape[0], QtGui.QImage.Format_RGB32)
+            pixmap = QtGui.QPixmap(img)
+            # pixmap = QtGui.QPixmap(db_file["filepath"])
+            # self.imgLBL.setPixmap(pixmap)
+        self.imgLBL.setPixmap(pixmap)
+
 
     def threadFinished(self):
         self.textBrowser.append('Database Ready.')
@@ -251,11 +264,12 @@ class UI(QMainWindow):
         elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
                 not self.xrange and not self.yrange and self.energy ):
             # only energy filter
-            filtered = list(self.collection.find({"energies" : self.emaxSB.value()}))
+            filtered = list(self.collection.find({"energies" : {'$in': list(range(self.eminSB.value(), self.emaxSB.value()))}}))
 
         else:
             # no filters
             filtered = list(self.collection.find({}))
+
 
         for item in filtered:
             self.fileCB.addItem(item['name'])
@@ -294,7 +308,8 @@ class UI(QMainWindow):
 
             try:
                 # get info to put into database
-                data = f['entry0']['counter0']['data'][()]
+                data = f['entry0']['counter0']['data'][()] #.decode('utf8')
+                serialized_data = bson.Binary(pickle.dumps(data, protocol=2))
                 scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
                 start_time = f['entry0']['start_time'][()].decode('utf8')
                 end_time = f['entry0']['end_time'][()].decode('utf8')
@@ -303,7 +318,7 @@ class UI(QMainWindow):
                 ctr0_signal = f['entry0']['counter0'].attrs['signal']
                 ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
 
-                xpoints = np.array(f['entry0']['counter0']['sample_x'][()])
+                xpoints = (f['entry0']['counter0']['sample_x'][()])
                 if xpoints.size == 1:
                     xpoints = np.append(xpoints, 0)
                     xres = 1
@@ -312,7 +327,7 @@ class UI(QMainWindow):
                 xstart = xpoints[0]
                 xstop = xpoints[-1]
                 xrange = np.fabs(xstop - xstart)
-                ypoints = np.array(f['entry0']['counter0']['sample_y'][()])
+                ypoints = (f['entry0']['counter0']['sample_y'][()])
                 if ypoints.size == 1:
                     ypoints = np.append(ypoints, 0)
                     yres = 1
@@ -327,18 +342,23 @@ class UI(QMainWindow):
                 self.textBrowser.append("ERROR: " + str(e))
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             else:
-                # store entry in db
-                result = self.collection.insert_one({"name": name,
-                                                     "file_path": file,
-                                                     "scan_type": scan_type,
-                                                     "start_time": start_time,
-                                                     "end_time": end_time,
-                                                     "xrange": xrange,
-                                                     "yrange": yrange,
-                                                     "xresolution": xres,
-                                                     "yresolution": yres,
-                                                     "energies": energies_lst
-                                                     })
+                try:
+                    # store entry in db
+                    result = self.collection.insert_one({"name": name,
+                                                         "file_path": file,
+                                                         # "data": data,
+                                                         "data": serialized_data,
+                                                         "scan_type": scan_type,
+                                                         "start_time": start_time,
+                                                         "end_time": end_time,
+                                                         "xrange": xrange,
+                                                         "yrange": yrange,
+                                                         "xresolution": xres,
+                                                         "yresolution": yres,
+                                                         "energies": energies_lst
+                                                         })
+                except Exception as e:
+                    print(e)
             finally:
                 # clean up
                 f.close()
