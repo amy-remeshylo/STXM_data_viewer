@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
+from PyQt5 import QtGui
 import sys
 from pymongo import MongoClient
 import h5py
@@ -22,6 +23,8 @@ class Worker(QRunnable):
             self.args = args
             self.kwargs = kwargs
             self.signals = WorkerSignals()
+
+            self.kwargs['progress_callback'] = self.signals.progress
 
         def run(self):
             self.fn(*self.args, **self.kwargs)
@@ -75,6 +78,7 @@ class UI(QMainWindow):
         self.progressBar = self.findChild(QProgressBar, "progressBar")
 
         self.textBrowser = self.findChild(QTextBrowser, "textBrowser")
+        self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
         self.dirLE = self.findChild(QLineEdit, "dirLE")
 
@@ -114,6 +118,7 @@ class UI(QMainWindow):
     def clear(self):
         # show clear message on text browser
         self.textBrowser.append("Filters Cleared.")
+        self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # clear line edit and set all spin boxes, combo boxes, and date times back to default
         self.dirLE.setText("")
         self.xrangeSB.setValue(0)
@@ -125,6 +130,14 @@ class UI(QMainWindow):
         self.scanCB.setCurrentIndex(0)
         self.startDT.setDateTime(datetime.datetime(2000, 1, 1, 00, 00))
         self.endDT.setDateTime(datetime.datetime(2000, 1, 1, 00, 00))
+
+        # clear filter combo box
+        self.fileCB.clear()
+        self.fileCB.addItem("Select a File")
+
+        # reset and hide progress bar from view
+        self.progBar.hide()
+        self.progBar.setValue(0)
 
         # clear filters
         self.scan_type = False
@@ -138,29 +151,84 @@ class UI(QMainWindow):
 
     def threadFinished(self):
         self.textBrowser.append('Database Ready.')
+        self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # self.progBar.hide()
 
     def submit(self):
         self.textBrowser.append("Filters submitted. Preparing database.")
+        self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         if self.dirLE.text() != "":
             self.progBar.setValue(0)
             self.progBar.show()
-            worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
+            # worker = Worker(lambda: self.prepareDatabase(self.dirLE.text(), self.signals.progress))
+            worker = Worker(self.prepareDatabase, self.dirLE.text())
             worker.signals.finished.connect(self.threadFinished)
-            # worker.signals.progress.connect(self.trackProgress)
+            worker.signals.progress.connect(self.trackProgress)
             self.threadpool.start(worker)
             # dlg = progressDialog()
             # dlg.exec_()
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+    #
+    # def filter(self):
+    #     if self.scanTE.currentIndex() != 0:
+    #         self.scan_type = True
+    #     else:
+    #         self.scan_type = False
+    #
+    #     if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+    #         self.start_date = True
+    #     else:
+    #         self.start_date = False
+    #
+    #     if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+    #         self.end_date = True
+    #     else:
+    #         self.end_date = False
+    #
+    #     if self.xresSB.value() != 0:
+    #         self.xres = True
+    #     else:
+    #         self.xres = False
+    #
+    #     if self.yresSB.value() != 0:
+    #         self.yres = True
+    #     else:
+    #         self.yres = False
+    #
+    #     if self.xrangeSB.value() != 0:
+    #         self.xrange = True
+    #     else:
+    #         self.xrange = False
+    #
+    #     if self.yrangeSB.value() != 0:
+    #         self.yrange = True
+    #     else:
+    #         self.yrange = False
+    #
+    #     if self.emaxSB != 0:
+    #         self.energy = True
+    #     else:
+    #         self.energy = False
+    #
+    #     if (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+    #             not self.xrange and not self.yrange and not self.energy ):
+    #         # no filters
+    #         filtered = self.collection.find({})
+    #         print (filtered)
+    #
+    #     for item in filtered:
+    #         self.fileCB.addItems(item.name)
+
 
     def trackProgress(self, progress):
         self.progBar.setValue(progress)
 
-    def prepareDatabase(self, directory): #progress_callback):
+    def prepareDatabase(self, directory, progress_callback):
         # files = glob.glob(direct + "\\*.hdf5", recursive=True)
 
-        file_paths = []  # List which will store all of the full filepaths.
+        file_paths = []  # List which will store all the full filepaths.
 
         # Walk the tree.
         for root, directories, files in os.walk(directory):
@@ -169,6 +237,10 @@ class UI(QMainWindow):
                     # Join the two strings in order to form the full filepath.
                     filepath = os.path.join(root, filename)
                     file_paths.append(filepath)  # Add it to the list.
+
+        # max index and current index for calculation of % completion
+        max_index = len(file_paths)
+        index = 1
 
         for file in file_paths:
             name = ""
@@ -211,10 +283,12 @@ class UI(QMainWindow):
                 ystop = ypoints[-1]
                 yrange = np.fabs(ystop - ystart)
 
-                energies_lst = f['entry0']['counter0']['energy'][()]
+                energies_lst = list(f['entry0']['counter0']['energy'][()])
             except Exception as e:
                 self.textBrowser.append("ERROR: " + str(e))
+                self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             else:
+                # store entry in db
                 result = self.collection.insert_one({"name": name,
                                                      "file_path": file,
                                                      "scan_type": scan_type,
@@ -224,14 +298,19 @@ class UI(QMainWindow):
                                                      "yrange": yrange,
                                                      "xresolution": xres,
                                                      "yresolution": yres,
-                                                     # "energies": energies_lst
+                                                     "energies": energies_lst
                                                      })
                 self.fileCB.addItem(name)
             finally:
+                # clean up
                 f.close()
 
             self.textBrowser.append(name)
-            # progress_callback.emit()
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+            progress_callback.emit(int((index / max_index) * 100))
+            index += 1
+
+        # self.filter()
 
 def main():
     app = QApplication(sys.argv)
