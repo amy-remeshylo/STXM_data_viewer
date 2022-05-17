@@ -192,11 +192,21 @@ class UI(QMainWindow):
                 ctr0_signal = f['entry0']['counter0'].attrs['signal']
                 ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
 
-                xpoints = f['entry0']['counter0']['sample_x'][()]
+                xpoints = np.array(f['entry0']['counter0']['sample_x'][()])
+                if xpoints.size == 1:
+                    xpoints = np.append(xpoints, 0)
+                    xres = 1
+                else:
+                    xres = xpoints.size
                 xstart = xpoints[0]
                 xstop = xpoints[-1]
                 xrange = np.fabs(xstop - xstart)
-                ypoints = f['entry0']['counter0']['sample_y'][()]
+                ypoints = np.array(f['entry0']['counter0']['sample_y'][()])
+                if ypoints.size == 1:
+                    ypoints = np.append(ypoints, 0)
+                    yres = 1
+                else:
+                    yres = ypoints.size
                 ystart = ypoints[0]
                 ystop = ypoints[-1]
                 yrange = np.fabs(ystop - ystart)
@@ -212,8 +222,8 @@ class UI(QMainWindow):
                                                      "end_time": end_time,
                                                      "xrange": xrange,
                                                      "yrange": yrange,
-                                                     "xresolution": len(xpoints),
-                                                     "yresolution": len(ypoints),
+                                                     "xresolution": xres,
+                                                     "yresolution": yres,
                                                      # "energies": energies_lst
                                                      })
                 self.fileCB.addItem(name)
