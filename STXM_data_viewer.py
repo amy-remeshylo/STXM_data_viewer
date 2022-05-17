@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 import sys
@@ -27,15 +27,15 @@ class Worker(QRunnable):
             self.fn(*self.args, **self.kwargs)
             self.signals.finished.emit()
 
-class progressDialog(QDialog):
-    def __init__(self):
-        super(progressDialog, self).__init__()
-
-        uic.loadUi("preparing_database_dlg.ui", self)
-        self.setWindowTitle("Preparing Database")
-
-        self.progBar = self.findChild(QProgressBar, "progressBar")
-        self.progBar.setValue(0)
+# class progressDialog(QDialog):
+#     def __init__(self):
+#         super(progressDialog, self).__init__()
+#
+#         uic.loadUi("preparing_database_dlg.ui", self)
+#         self.setWindowTitle("Preparing Database")
+#
+#         self.progBar = self.findChild(QProgressBar, "progressBar")
+#         self.progBar.setValue(0)
 
 
 class UI(QMainWindow):
@@ -82,6 +82,9 @@ class UI(QMainWindow):
 
         self.submitBTN = self.findChild(QPushButton, "submitBTN")
         self.clearBTN = self.findChild(QPushButton, "clearBTN")
+
+        self.progBar = self.findChild(QProgressBar, "progressBar")
+        self.progBar.hide()
 
         # clear filters
         self.scan_type = False
@@ -133,21 +136,28 @@ class UI(QMainWindow):
         self.yrange = False
         self.energy = False
 
+    def threadFinished(self):
+        self.textBrowser.append('Database Ready.')
+        # self.progBar.hide()
+
     def submit(self):
         self.textBrowser.append("Filters submitted. Preparing database.")
         if self.dirLE.text() != "":
+            self.progBar.setValue(0)
+            self.progBar.show()
             worker = Worker(lambda: self.prepareDatabase(self.dirLE.text()))
-            worker.signals.finished.connect(lambda: self.textBrowser.append('Database Ready.'))
+            worker.signals.finished.connect(self.threadFinished)
+            # worker.signals.progress.connect(self.trackProgress)
             self.threadpool.start(worker)
-            # try:
-            dlg = progressDialog()
-            dlg.exec_()
-            # except:
-            #     self.textBrowser.append("cannot open dialog window")
+            # dlg = progressDialog()
+            # dlg.exec_()
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
 
-    def prepareDatabase(self, directory):
+    def trackProgress(self, progress):
+        self.progBar.setValue(progress)
+
+    def prepareDatabase(self, directory): #progress_callback):
         # files = glob.glob(direct + "\\*.hdf5", recursive=True)
 
         file_paths = []  # List which will store all of the full filepaths.
@@ -192,8 +202,8 @@ class UI(QMainWindow):
                 yrange = np.fabs(ystop - ystart)
 
                 energies_lst = f['entry0']['counter0']['energy'][()]
-            except:
-                self.textBrowser.append("ERROR: Exception thrown gathering data from file.")
+            except Exception as e:
+                self.textBrowser.append("ERROR: " + str(e))
             else:
                 result = self.collection.insert_one({"name": name,
                                                      "file_path": file,
@@ -206,12 +216,12 @@ class UI(QMainWindow):
                                                      "yresolution": len(ypoints),
                                                      # "energies": energies_lst
                                                      })
+                self.fileCB.addItem(name)
             finally:
                 f.close()
 
-
-            self.fileCB.addItem(name)
             self.textBrowser.append(name)
+            # progress_callback.emit()
 
 def main():
     app = QApplication(sys.argv)
