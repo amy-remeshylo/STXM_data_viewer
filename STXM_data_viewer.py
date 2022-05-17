@@ -152,6 +152,7 @@ class UI(QMainWindow):
     def threadFinished(self):
         self.textBrowser.append('Database Ready.')
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+        self.filter()
         # self.progBar.hide()
 
     def submit(self):
@@ -170,56 +171,94 @@ class UI(QMainWindow):
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
-    #
-    # def filter(self):
-    #     if self.scanTE.currentIndex() != 0:
-    #         self.scan_type = True
-    #     else:
-    #         self.scan_type = False
-    #
-    #     if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
-    #         self.start_date = True
-    #     else:
-    #         self.start_date = False
-    #
-    #     if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
-    #         self.end_date = True
-    #     else:
-    #         self.end_date = False
-    #
-    #     if self.xresSB.value() != 0:
-    #         self.xres = True
-    #     else:
-    #         self.xres = False
-    #
-    #     if self.yresSB.value() != 0:
-    #         self.yres = True
-    #     else:
-    #         self.yres = False
-    #
-    #     if self.xrangeSB.value() != 0:
-    #         self.xrange = True
-    #     else:
-    #         self.xrange = False
-    #
-    #     if self.yrangeSB.value() != 0:
-    #         self.yrange = True
-    #     else:
-    #         self.yrange = False
-    #
-    #     if self.emaxSB != 0:
-    #         self.energy = True
-    #     else:
-    #         self.energy = False
-    #
-    #     if (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-    #             not self.xrange and not self.yrange and not self.energy ):
-    #         # no filters
-    #         filtered = self.collection.find({})
-    #         print (filtered)
-    #
-    #     for item in filtered:
-    #         self.fileCB.addItems(item.name)
+
+    def filter(self):
+        if self.scanCB.currentText() != "Scan Type...":
+            self.scan_type = True
+        else:
+            self.scan_type = False
+
+        if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+            self.start_date = True
+        else:
+            self.start_date = False
+
+        if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+            self.end_date = True
+        else:
+            self.end_date = False
+
+        if self.xresSB.value() != 0:
+            self.xres = True
+        else:
+            self.xres = False
+
+        if self.yresSB.value() != 0:
+            self.yres = True
+        else:
+            self.yres = False
+
+        if self.xrangeSB.value() != 0:
+            self.xrange = True
+        else:
+            self.xrange = False
+
+        if self.yrangeSB.value() != 0:
+            self.yrange = True
+        else:
+            self.yrange = False
+
+        if self.emaxSB.value() != 0:
+            self.energy = True
+        else:
+            self.energy = False
+
+        if (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                not self.xrange and not self.yrange and not self.energy ):
+            # only scan_type filter
+            filtered = list(self.collection.find({"scan_type" : self.scanCB.currentText()}))
+
+        elif (not self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
+                not self.xrange and not self.yrange and not self.energy ):
+            # only start date filter
+            filtered = list(self.collection.find({"start_date" : self.startDT.dateTime()}))
+
+        elif (not self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
+                not self.xrange and not self.yrange and not self.energy ):
+            # only end date filter
+            filtered = list(self.collection.find({"end_date" : self.endDT.dateTime()}))
+
+        elif (not self.scan_type and not self.start_date and not self.end_date and self.xres and not self.yres and
+                not self.xrange and not self.yrange and not self.energy ):
+            # only x resolution filter
+            filtered = list(self.collection.find({"xres" : self.xresSB.value()}))
+
+        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
+                not self.xrange and not self.yrange and not self.energy ):
+            # only y resolution filter
+            filtered = list(self.collection.find({"yres" : self.yresSB.value()}))
+
+        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                 self.xrange and not self.yrange and not self.energy ):
+            # only x range filter
+            filtered = list(self.collection.find({"xrange" : self.xrangeSB.value()}))
+
+        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                not self.xrange and self.yrange and not self.energy ):
+            # only y range filter
+            filtered = list(self.collection.find({"yrange" : self.yrangeSB.value()}))
+
+        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                not self.xrange and not self.yrange and self.energy ):
+            # only energy filter
+            filtered = list(self.collection.find({"energies" : self.emaxSB.value()}))
+
+        else:
+            # no filters
+            filtered = list(self.collection.find({}))
+
+        for item in filtered:
+            self.fileCB.addItem(item['name'])
 
 
     def trackProgress(self, progress):
@@ -300,7 +339,6 @@ class UI(QMainWindow):
                                                      "yresolution": yres,
                                                      "energies": energies_lst
                                                      })
-                self.fileCB.addItem(name)
             finally:
                 # clean up
                 f.close()
@@ -309,8 +347,6 @@ class UI(QMainWindow):
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
-
-        # self.filter()
 
 def main():
     app = QApplication(sys.argv)
