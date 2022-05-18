@@ -141,7 +141,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Y Range:</string>
+      <string>Y Range</string>
      </property>
     </widget>
     <widget class="QLabel" name="startLBL">
@@ -172,12 +172,12 @@
       <rect>
        <x>20</x>
        <y>235</y>
-       <width>91</width>
+       <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>X Range:</string>
+      <string>X Range</string>
      </property>
     </widget>
     <widget class="QLabel" name="xresLBL">

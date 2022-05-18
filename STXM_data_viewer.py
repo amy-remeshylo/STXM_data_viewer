@@ -301,19 +301,19 @@ class UI(QMainWindow):
             else:
                 self.energy = False
 
-            if (self.scan_type and self.start_date and self.end_date and self.xres and self.yres and
-                    self.xrange and self.yrange and self.energy):
-                # all filters
-                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-                                                      "start_date": self.startDT.dateTime(),
-                                                      "end_date:": self.endDT.dateTime(),
-                                                      "xrange": self.xrangeSB.value(),
-                                                      "yrange": self.yrangeSB.value(),
-                                                      "xres": self.xresSB.value(),
-                                                      "yes": self.yresSB.value(),
-                                                      "energy": {
-                                                          "$in": list(range(self.eminSB.value(), self.emaxSB.value()))}
-                                                      }))
+            # if (self.scan_type and self.start_date and self.end_date and self.xres and self.yres and
+            #         self.xrange and self.yrange and self.energy):
+            #     # all filters
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "start_date": self.startDT.dateTime(),
+            #                                           "end_date:": self.endDT.dateTime(),
+            #                                           "xrange": self.xrangeSB.value(),
+            #                                           "yrange": self.yrangeSB.value(),
+            #                                           "xres": self.xresSB.value(),
+            #                                           "yes": self.yresSB.value(),
+            #                                           "energy": {
+            #                                               "$in": list(range(self.eminSB.value(), self.emaxSB.value()))}
+            #                                           }))
 
             if (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
@@ -333,12 +333,12 @@ class UI(QMainWindow):
             elif (not self.scan_type and not self.start_date and not self.end_date and self.xres and not self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only x resolution filter
-                filtered = list(self.collection.find({"xres" : self.xresSB.value()}))
+                filtered = list(self.collection.find({"xresolution" : self.xresSB.value()}))
 
             elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only y resolution filter
-                filtered = list(self.collection.find({"yres" : self.yresSB.value()}))
+                filtered = list(self.collection.find({"yresolution" : self.yresSB.value()}))
 
             elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
                      self.xrange and not self.yrange and not self.energy ):
@@ -355,25 +355,54 @@ class UI(QMainWindow):
                 # only energy filter
                 filtered = list(self.collection.find({"energies" : {'$in': list(range(self.eminSB.value(), self.emaxSB.value()))}}))
 
-            elif (self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
-                    not self.xrange and not self.yrange and self.energy ):
-                # scan type and start date
-                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-                                                      "start_date": self.startDT.dateTime(),
-                                                      }))
-            elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
-                  not self.xrange and not self.yrange and self.energy):
-                # scan type and end date
-                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-                                                      "end_date": self.endDT.dateTime(),
-                                                      }))
+            # elif (self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
+            #         not self.xrange and not self.yrange and not self.energy ):
+            #     # scan type and start date
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "start_date": self.startDT.dateTime(),
+            #                                           }))
+            # elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
+            #       not self.xrange and not self.yrange and not self.energy):
+            #     # scan type and end date
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "end_date": self.endDT.dateTime(),
+            #                                           }))
+            #
+            # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+            #           not self.xrange and not self.yrange and not self.energy):
+            #     # scan type and xres
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "xres": self.xresSB.value(),
+            #                                           }))
+            #
+            # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
+            #       not self.xrange and not self.yrange and not self.energy):
+            #     # scan type and yres
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "yres": self.yresSB.value(),
+            #                                           }))
+            #
+            # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+            #       self.xrange and not self.yrange and not self.energy):
+            #     # scan type and xrange
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "yrange": self.xrangeSB.value(),
+            #                                           }))
+            # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+            #       not self.xrange and self.yrange and not self.energy):
+            #     # scan type and yrange
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "yrange": self.yrangeSB.value(),
+            #                                           }))
+            #
+            # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+            #       not self.xrange and not self.yrange and self.energy):
+            #     # scan type and energy
+            #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+            #                                           "energy": {"$in": list(range(self.eminSB.value(), self.emaxSB.value()))}
+            #                                           }))
 
-            elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
-                      not self.xrange and not self.yrange and self.energy):
-                # scan type and xres
-                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-                                                      "xres": self.xresSB.value(),
-                                                      }))
+
 
             else:
                 # no filters
@@ -422,9 +451,7 @@ class UI(QMainWindow):
 
             try:
                 # get info to put into database
-                # data = np.array(f['entry0']['counter0']['data'], dtype=np.int16)
                 data = f['entry0']['counter0']['data'][()]
-                print (data)
                 serialized_data = bson.Binary(pickle.dumps(data, protocol=2))
                 scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
                 start_time = f['entry0']['start_time'][()].decode('utf8')
@@ -454,6 +481,13 @@ class UI(QMainWindow):
                 yrange = np.fabs(ystop - ystart)
 
                 energies_lst = list(f['entry0']['counter0']['energy'][()])
+                print (energies_lst)
+                i = 0
+                for energy in energies_lst:
+                    energies_lst[i] = int(energy)
+                    i += 1
+                print (energies_lst)
+
             except Exception as e:
                 self.textBrowser.append("ERROR: " + str(e))
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
@@ -467,8 +501,8 @@ class UI(QMainWindow):
                                                          "scan_type": scan_type,
                                                          "start_time": start_time,
                                                          "end_time": end_time,
-                                                         "xrange": xrange,
-                                                         "yrange": yrange,
+                                                         "xrange": int(xrange),
+                                                         "yrange": int(yrange),
                                                          "xresolution": xres,
                                                          "yresolution": yres,
                                                          "energies": energies_lst
