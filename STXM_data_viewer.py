@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QGraphicsView, QWidget, QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 from PyQt5 import QtGui
@@ -7,10 +7,11 @@ from pymongo import MongoClient
 import bson
 import h5py
 import numpy as np
-import glob
 import datetime
 import os
 import pickle
+import pyqtgraph as pg
+from PIL import Image
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -34,14 +35,14 @@ class Worker(QRunnable):
 
 class UI(QMainWindow):
     def __init__(self):
-        super(UI,self).__init__()
+        super(UI, self).__init__()
 
         #load the ui file
         uic.loadUi("STXM_data_viewer.ui",self)
         self.setWindowTitle("STXM Data Viewer")
 
         # define widgets
-        self.filterLBL = self.findChild(QLabel, "filerLBL")
+        self.filterLBL = self.findChild(QLabel, "filterLBL")
         self.startLBL = self.findChild(QLabel, "startLBL")
         self.endLBL = self.findChild(QLabel, "endLBL")
         self.xrangeLBL = self.findChild(QLabel, "xrangeLBL")
@@ -83,9 +84,12 @@ class UI(QMainWindow):
 
         self.submitBTN = self.findChild(QPushButton, "submitBTN")
         self.clearBTN = self.findChild(QPushButton, "clearBTN")
+        self.filterBTN = self.findChild(QPushButton, "filterBTN")
 
         self.progBar = self.findChild(QProgressBar, "progressBar")
         self.progBar.hide()
+
+        # self.fileGV = self.findChild(QGraphicsView, "graphicsView")
 
         # clear filters
         self.scan_type = False
@@ -96,6 +100,10 @@ class UI(QMainWindow):
         self.xrange = False
         self.yrange = False
         self.energy = False
+
+        # hide filter selectors to start
+        self.hideFilters()
+
 
         # set up threadpool
         self.threadpool = QThreadPool()
@@ -111,11 +119,54 @@ class UI(QMainWindow):
         # connect signals to slots
         self.submitBTN.clicked.connect(self.submit)
         self.clearBTN.clicked.connect(self.clear)
+        self.filterBTN.clicked.connect(self.filter)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
+
+    def hideFilters(self):
+        self.filterLBL.hide()
+        self.startLBL.hide()
+        self.endLBL.hide()
+        self.xrangeLBL.hide()
+        self.yrangeLBL.hide()
+        self.xresLBL.hide()
+        self.yresLBL.hide()
+        self.energyLBL.hide()
+        self.toLBL.hide()
+
+        self.scanCB.hide()
+        self.startDT.hide()
+        self.endDT.hide()
+        self.xrangeSB.hide()
+        self.yrangeSB.hide()
+        self.xresSB.hide()
+        self.yresSB.hide()
+        self.eminSB.hide()
+        self.emaxSB.hide()
+
+    def showFilters(self):
+        self.filterLBL.show()
+        self.startLBL.show()
+        self.endLBL.show()
+        self.xrangeLBL.show()
+        self.yrangeLBL.show()
+        self.xresLBL.show()
+        self.yresLBL.show()
+        self.energyLBL.show()
+        self.toLBL.show()
+
+        self.scanCB.show()
+        self.startDT.show()
+        self.endDT.show()
+        self.xrangeSB.show()
+        self.yrangeSB.show()
+        self.xresSB.show()
+        self.yresSB.show()
+        self.eminSB.show()
+        self.emaxSB.show()
 
     def clear(self):
         # show clear message on text browser
-        self.textBrowser.append("Filters Cleared.")
+        self.textBrowser.append("Selections Cleared.")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # clear line edit and set all spin boxes, combo boxes, and date times back to default
         self.dirLE.setText("")
@@ -147,6 +198,13 @@ class UI(QMainWindow):
         self.yrange = False
         self.energy = False
 
+        # hide filters
+        self.hideFilters()
+
+        # reset image
+        pixmap = QtGui.QPixmap("white.png")
+        self.imgLBL.setPixmap(pixmap)
+
     def displayHDF(self, filename):
         if filename == "Select a File":
             pixmap = QtGui.QPixmap("white.png")
@@ -155,21 +213,26 @@ class UI(QMainWindow):
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             db_file = self.collection.find_one({"name": filename})
             data = pickle.loads(db_file["data"])
-            img = QtGui.QImage(data, data.shape[1], data.shape[0], QtGui.QImage.Format_RGB32)
+
+            img = Image.fromarray(data, 'RGB')
+            img.save(filename[:-5] + '.png')
+            img.show()
+
+            img = QtGui.QImage(data.data, data.shape[1], data.shape[0], QtGui.QImage.Format_Grayscale16)
             pixmap = QtGui.QPixmap(img)
-            # pixmap = QtGui.QPixmap(db_file["filepath"])
-            # self.imgLBL.setPixmap(pixmap)
+
+
         self.imgLBL.setPixmap(pixmap)
 
 
     def threadFinished(self):
         self.textBrowser.append('Database Ready.')
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
-        self.filter()
+        self.showFilters()
         # self.progBar.hide()
 
     def submit(self):
-        self.textBrowser.append("Filters submitted. Preparing database.")
+        self.textBrowser.append("Directory submitted. Preparing database.")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         if self.dirLE.text() != "":
             self.progBar.setValue(0)
@@ -179,100 +242,146 @@ class UI(QMainWindow):
             worker.signals.finished.connect(self.threadFinished)
             worker.signals.progress.connect(self.trackProgress)
             self.threadpool.start(worker)
-            # dlg = progressDialog()
-            # dlg.exec_()
         else:
             self.textBrowser.append("ERROR: File Directory field is required.")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
     def filter(self):
-        if self.scanCB.currentText() != "Scan Type...":
-            self.scan_type = True
+
+        if self.filterLBL.isHidden():
+            self.textBrowser.append("ERROR: No filters to submit. Create a database first.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
-            self.scan_type = False
+            self.fileCB.clear()
+            self.fileCB.addItem("Select a File")
 
-        if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
-            self.start_date = True
-        else:
-            self.start_date = False
+            pixmap = QtGui.QPixmap("white.png")
+            self.imgLBL.setPixmap(pixmap)
 
-        if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
-            self.end_date = True
-        else:
-            self.end_date = False
+            self.textBrowser.append("Filters submitted.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-        if self.xresSB.value() != 0:
-            self.xres = True
-        else:
-            self.xres = False
+            if self.scanCB.currentText() != "Scan Type...":
+                self.scan_type = True
+            else:
+                self.scan_type = False
 
-        if self.yresSB.value() != 0:
-            self.yres = True
-        else:
-            self.yres = False
+            if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+                self.start_date = True
+            else:
+                self.start_date = False
 
-        if self.xrangeSB.value() != 0:
-            self.xrange = True
-        else:
-            self.xrange = False
+            if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
+                self.end_date = True
+            else:
+                self.end_date = False
 
-        if self.yrangeSB.value() != 0:
-            self.yrange = True
-        else:
-            self.yrange = False
+            if self.xresSB.value() != 0:
+                self.xres = True
+            else:
+                self.xres = False
 
-        if self.emaxSB.value() != 0:
-            self.energy = True
-        else:
-            self.energy = False
+            if self.yresSB.value() != 0:
+                self.yres = True
+            else:
+                self.yres = False
 
-        if (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-                not self.xrange and not self.yrange and not self.energy ):
-            # only scan_type filter
-            filtered = list(self.collection.find({"scan_type" : self.scanCB.currentText()}))
+            if self.xrangeSB.value() != 0:
+                self.xrange = True
+            else:
+                self.xrange = False
 
-        elif (not self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
-                not self.xrange and not self.yrange and not self.energy ):
-            # only start date filter
-            filtered = list(self.collection.find({"start_date" : self.startDT.dateTime()}))
+            if self.yrangeSB.value() != 0:
+                self.yrange = True
+            else:
+                self.yrange = False
 
-        elif (not self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
-                not self.xrange and not self.yrange and not self.energy ):
-            # only end date filter
-            filtered = list(self.collection.find({"end_date" : self.endDT.dateTime()}))
+            if self.emaxSB.value() != 0:
+                self.energy = True
+            else:
+                self.energy = False
 
-        elif (not self.scan_type and not self.start_date and not self.end_date and self.xres and not self.yres and
-                not self.xrange and not self.yrange and not self.energy ):
-            # only x resolution filter
-            filtered = list(self.collection.find({"xres" : self.xresSB.value()}))
+            if (self.scan_type and self.start_date and self.end_date and self.xres and self.yres and
+                    self.xrange and self.yrange and self.energy):
+                # all filters
+                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+                                                      "start_date": self.startDT.dateTime(),
+                                                      "end_date:": self.endDT.dateTime(),
+                                                      "xrange": self.xrangeSB.value(),
+                                                      "yrange": self.yrangeSB.value(),
+                                                      "xres": self.xresSB.value(),
+                                                      "yes": self.yresSB.value(),
+                                                      "energy": {
+                                                          "$in": list(range(self.eminSB.value(), self.emaxSB.value()))}
+                                                      }))
 
-        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
-                not self.xrange and not self.yrange and not self.energy ):
-            # only y resolution filter
-            filtered = list(self.collection.find({"yres" : self.yresSB.value()}))
+            if (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                    not self.xrange and not self.yrange and not self.energy ):
+                # only scan_type filter
+                filtered = list(self.collection.find({"scan_type" : self.scanCB.currentText()}))
 
-        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-                 self.xrange and not self.yrange and not self.energy ):
-            # only x range filter
-            filtered = list(self.collection.find({"xrange" : self.xrangeSB.value()}))
+            elif (not self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
+                    not self.xrange and not self.yrange and not self.energy ):
+                # only start date filter
+                filtered = list(self.collection.find({"start_date" : self.startDT.dateTime()}))
 
-        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-                not self.xrange and self.yrange and not self.energy ):
-            # only y range filter
-            filtered = list(self.collection.find({"yrange" : self.yrangeSB.value()}))
+            elif (not self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
+                    not self.xrange and not self.yrange and not self.energy ):
+                # only end date filter
+                filtered = list(self.collection.find({"end_date" : self.endDT.dateTime()}))
 
-        elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-                not self.xrange and not self.yrange and self.energy ):
-            # only energy filter
-            filtered = list(self.collection.find({"energies" : {'$in': list(range(self.eminSB.value(), self.emaxSB.value()))}}))
+            elif (not self.scan_type and not self.start_date and not self.end_date and self.xres and not self.yres and
+                    not self.xrange and not self.yrange and not self.energy ):
+                # only x resolution filter
+                filtered = list(self.collection.find({"xres" : self.xresSB.value()}))
 
-        else:
-            # no filters
-            filtered = list(self.collection.find({}))
+            elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
+                    not self.xrange and not self.yrange and not self.energy ):
+                # only y resolution filter
+                filtered = list(self.collection.find({"yres" : self.yresSB.value()}))
+
+            elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                     self.xrange and not self.yrange and not self.energy ):
+                # only x range filter
+                filtered = list(self.collection.find({"xrange" : self.xrangeSB.value()}))
+
+            elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                    not self.xrange and self.yrange and not self.energy ):
+                # only y range filter
+                filtered = list(self.collection.find({"yrange" : self.yrangeSB.value()}))
+
+            elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
+                    not self.xrange and not self.yrange and self.energy ):
+                # only energy filter
+                filtered = list(self.collection.find({"energies" : {'$in': list(range(self.eminSB.value(), self.emaxSB.value()))}}))
+
+            elif (self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
+                    not self.xrange and not self.yrange and self.energy ):
+                # scan type and start date
+                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+                                                      "start_date": self.startDT.dateTime(),
+                                                      }))
+            elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
+                  not self.xrange and not self.yrange and self.energy):
+                # scan type and end date
+                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+                                                      "end_date": self.endDT.dateTime(),
+                                                      }))
+
+            elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
+                      not self.xrange and not self.yrange and self.energy):
+                # scan type and xres
+                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
+                                                      "xres": self.xresSB.value(),
+                                                      }))
+
+            else:
+                # no filters
+                filtered = []
 
 
-        for item in filtered:
-            self.fileCB.addItem(item['name'])
+            for item in filtered:
+                self.fileCB.addItem(item['name'])
 
 
     def trackProgress(self, progress):
@@ -280,6 +389,7 @@ class UI(QMainWindow):
 
     def prepareDatabase(self, directory, progress_callback):
         # files = glob.glob(direct + "\\*.hdf5", recursive=True)
+        self.collection.delete_many({})
 
         file_paths = []  # List which will store all the full filepaths.
 
@@ -295,6 +405,10 @@ class UI(QMainWindow):
         max_index = len(file_paths)
         index = 1
 
+        if len(file_paths) == 0:
+            # self.textBrowser.append("No hdf5 files found in directory.")
+            progress_callback.emit(100)
+
         for file in file_paths:
             name = ""
             i = 1
@@ -308,7 +422,9 @@ class UI(QMainWindow):
 
             try:
                 # get info to put into database
-                data = f['entry0']['counter0']['data'][()] #.decode('utf8')
+                # data = np.array(f['entry0']['counter0']['data'], dtype=np.int16)
+                data = f['entry0']['counter0']['data'][()]
+                print (data)
                 serialized_data = bson.Binary(pickle.dumps(data, protocol=2))
                 scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
                 start_time = f['entry0']['start_time'][()].decode('utf8')
@@ -358,7 +474,7 @@ class UI(QMainWindow):
                                                          "energies": energies_lst
                                                          })
                 except Exception as e:
-                    print(e)
+                    self.textBrowser.append(e)
             finally:
                 # clean up
                 f.close()
