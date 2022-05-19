@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QGraphicsView, QWidget, QLineEdit, QComboBox, QVBoxLayout, QDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QToolButton, QGraphicsView, QWidget, QLineEdit, QComboBox, QVBoxLayout, QFileDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 from PyQt5 import QtGui
@@ -85,6 +85,7 @@ class UI(QMainWindow):
         self.submitBTN = self.findChild(QPushButton, "submitBTN")
         self.clearBTN = self.findChild(QPushButton, "clearBTN")
         self.filterBTN = self.findChild(QPushButton, "filterBTN")
+        self.toolBTN = self.findChild(QToolButton, "toolBTN")
 
         self.progBar = self.findChild(QProgressBar, "progressBar")
         self.progBar.hide()
@@ -101,9 +102,8 @@ class UI(QMainWindow):
         self.yrange = False
         self.energy = False
 
-        # hide filter selectors to start
-        self.hideFilters()
-
+        # set filter boolean false (no filters may be used)
+        self.filterAllowed = False
 
         # set up threadpool
         self.threadpool = QThreadPool()
@@ -120,49 +120,12 @@ class UI(QMainWindow):
         self.submitBTN.clicked.connect(self.submit)
         self.clearBTN.clicked.connect(self.clearSelections)
         self.filterBTN.clicked.connect(self.filter)
+        self.toolBTN.clicked.connect(self.selectDirectory)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
-    def hideFilters(self):
-        self.filterLBL.hide()
-        self.startLBL.hide()
-        self.endLBL.hide()
-        self.xrangeLBL.hide()
-        self.yrangeLBL.hide()
-        self.xresLBL.hide()
-        self.yresLBL.hide()
-        self.energyLBL.hide()
-        self.toLBL.hide()
-
-        self.scanCB.hide()
-        self.startDT.hide()
-        self.endDT.hide()
-        self.xrangeSB.hide()
-        self.yrangeSB.hide()
-        self.xresSB.hide()
-        self.yresSB.hide()
-        self.eminSB.hide()
-        self.emaxSB.hide()
-
-    def showFilters(self):
-        self.filterLBL.show()
-        self.startLBL.show()
-        self.endLBL.show()
-        self.xrangeLBL.show()
-        self.yrangeLBL.show()
-        self.xresLBL.show()
-        self.yresLBL.show()
-        self.energyLBL.show()
-        self.toLBL.show()
-
-        self.scanCB.show()
-        self.startDT.show()
-        self.endDT.show()
-        self.xrangeSB.show()
-        self.yrangeSB.show()
-        self.xresSB.show()
-        self.yresSB.show()
-        self.eminSB.show()
-        self.emaxSB.show()
+    def selectDirectory(self):
+        directory = QFileDialog.getExistingDirectory(self, 'Select Folder')
+        self.dirLE.setText(directory)
 
     def clearSelections(self):
         # show clear message on text browser
@@ -198,8 +161,8 @@ class UI(QMainWindow):
         self.yrange = False
         self.energy = False
 
-        # hide filters
-        self.hideFilters()
+        # disallow filters
+        self.filterAllowed = False
 
         # reset image
         pixmap = QtGui.QPixmap("white.png")
@@ -228,8 +191,8 @@ class UI(QMainWindow):
     def threadFinished(self):
         self.textBrowser.append('Database Ready.')
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
-        self.showFilters()
-        # self.progBar.hide()
+        # allow filtering
+        self.filterAllowed = True
 
     def submit(self):
         self.textBrowser.append("Directory submitted. Preparing database.")
@@ -248,7 +211,7 @@ class UI(QMainWindow):
 
     def filter(self):
 
-        if self.filterLBL.isHidden():
+        if not self.filterAllowed:
             self.textBrowser.append("ERROR: No filters to submit. Create a database first.")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
@@ -330,7 +293,9 @@ class UI(QMainWindow):
             # start with unfiltered list
             filtered = list(self.collection.find({}))
 
-            # for each item in unfiltered list, check if it matches results of filters. if not, remove (filter) it.
+            # for each item in unfiltered list, check if it matches results of filters, if filters are active.
+            # if not, remove (filter) it.
+            # note: will not filter from default values
             for item in filtered:
                 if self.scan_type and item not in filterScan:
                     filtered.remove(item)
@@ -371,7 +336,6 @@ class UI(QMainWindow):
         self.progBar.setValue(progress)
 
     def prepareDatabase(self, directory, progress_callback):
-        # files = glob.glob(direct + "\\*.hdf5", recursive=True)
         self.collection.delete_many({})
 
         file_paths = []  # List which will store all the full filepaths.
