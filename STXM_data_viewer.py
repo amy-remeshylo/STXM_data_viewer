@@ -443,17 +443,1007 @@ class UI(QMainWindow):
                                             # all but yres and energy filters
                                             pass
                                 else:
-                                    pass
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xres filter
+                                            pass
+                                        else:
+                                            # all but xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, xres filter
+                                            pass
+                                        else:
+                                            # all but yres, xres, and energy filters
+                                            pass
                             else:
-                                pass
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but yrange
+                                            pass
+                                        else:
+                                            # all but energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but yres, xres, yrange, and energy filters
+                                            pass
                         else:
-                            pass
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but xrange
+                                            pass
+                                        else:
+                                            # all but xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but xrange, yrange
+                                            pass
+                                        else:
+                                            # all but xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, xres, yrange, and energy filters
+                                            pass
                     else:
-                        pass
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end_date
+                                            pass
+                                        else:
+                                            # all but end, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres filter
+                                            pass
+                                        else:
+                                            # all but end, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but end, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, yrange
+                                            pass
+                                        else:
+                                            # all but end, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but end, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, xrange
+                                            pass
+                                        else:
+                                            # all but end, xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but end, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, xres, yrange, and energy filters
+                                            pass
                 else:
-                    pass
+                    if self.end_date:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start
+                                            pass
+                                        else:
+                                            # all but start, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, yres filter
+                                            pass
+                                        else:
+                                            # all but start, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, xres filter
+                                            pass
+                                        else:
+                                            # all but start,  xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but start, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, yrange
+                                            pass
+                                        else:
+                                            # all but start, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but start, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, xrange
+                                            pass
+                                        else:
+                                            # all but start,  xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but start,  xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but start, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but start, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but start, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but start, xrange, yres, xres, yrange, and energy filters
+                                            pass
+                    else:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, end_date
+                                            pass
+                                        else:
+                                            # all but start, end, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, yres filter
+                                            pass
+                                        else:
+                                            # all but start, end, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, end, xres filter
+                                            pass
+                                        else:
+                                            # all but start, end, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but start, end, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, end, yrange
+                                            pass
+                                        else:
+                                            # all but start, end, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, end, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, end, xrange
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, end, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but start, end, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but start, end, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but start, end, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but start, end, xrange, yres, xres, yrange, and energy filters
+                                            pass
             else:
-                pass
+                if self.start_date:
+                    if self.end_date:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters
+                                            pass
+                                        else:
+                                            # all but energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres filter
+                                            pass
+                                        else:
+                                            # all but yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xres filter
+                                            pass
+                                        else:
+                                            # all but xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, xres filter
+                                            pass
+                                        else:
+                                            # all but yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but yrange
+                                            pass
+                                        else:
+                                            # all but energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but xrange
+                                            pass
+                                        else:
+                                            # all but xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but xrange, yrange
+                                            pass
+                                        else:
+                                            # all but xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but xrange, yres, xres, yrange, and energy filters
+                                            pass
+                    else:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end_date
+                                            pass
+                                        else:
+                                            # all but end, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres filter
+                                            pass
+                                        else:
+                                            # all but end, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but end, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, yrange
+                                            pass
+                                        else:
+                                            # all but end, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but end, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, xrange
+                                            pass
+                                        else:
+                                            # all but end, xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but end, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but end, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but end, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but end, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but end, xrange, yres, xres, yrange, and energy filters
+                                            pass
+                else:
+                    if self.end_date:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start
+                                            pass
+                                        else:
+                                            # all but scan, start, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, yres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start,  xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, yrange
+                                            pass
+                                        else:
+                                            # all but scan, start, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, xrange
+                                            pass
+                                        else:
+                                            # all but scan, start,  xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but scan, start,  xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, xrange, yres, xres, yrange, and energy filters
+                                            pass
+                    else:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, end_date
+                                            pass
+                                        else:
+                                            # all but scan, start, end, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, yres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, end, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, end, yrange
+                                            pass
+                                        else:
+                                            # all but scan, start, end, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, end, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, yres, xres, yrange, and energy filters
+                                            pass
+                        else:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, end, xrange
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, yres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, yres and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, xres, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, yres, xres filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, yres, xres, and energy filters
+                                            pass
+                            else:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters but scan, start, end, xrange, yrange
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, energy, yrange filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, yres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, yres, yrange, and energy filters
+                                            pass
+                                else:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, xres, yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, xres, yrange, energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but scan, start, end, xrange, yres, xres yrange filter
+                                            pass
+                                        else:
+                                            # all but scan, start, end, xrange, yres, xres, yrange, and energy filters
+                                            pass
 
 
             for item in filtered:
