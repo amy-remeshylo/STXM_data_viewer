@@ -118,7 +118,7 @@ class UI(QMainWindow):
 
         # connect signals to slots
         self.submitBTN.clicked.connect(self.submit)
-        self.clearBTN.clicked.connect(self.clear)
+        self.clearBTN.clicked.connect(self.clearSelections)
         self.filterBTN.clicked.connect(self.filter)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
@@ -164,7 +164,7 @@ class UI(QMainWindow):
         self.eminSB.show()
         self.emaxSB.show()
 
-    def clear(self):
+    def clearSelections(self):
         # show clear message on text browser
         self.textBrowser.append("Selections Cleared.")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
@@ -301,12 +301,28 @@ class UI(QMainWindow):
             else:
                 self.energy = False
 
+            # find startDT string object to use with filter
+            start = self.startDT.dateTime().toString().rstrip()
+            # add 0 padding if necessary
+            if len(start) == 23:
+                s_beginning = start[:8]
+                s_ending = start[8:]
+                start = s_beginning + "0" + s_ending
+
+            # find endDT string object to use with filter
+            end = self.endDT.dateTime().toString().rstrip()
+            # add 0 padding if necessary
+            if len(end) == 23:
+                e_beginning = end[:8]
+                e_ending = end[8:]
+                end = e_beginning + "0" + e_ending
+
             # if (self.scan_type and self.start_date and self.end_date and self.xres and self.yres and
             #         self.xrange and self.yrange and self.energy):
             #     # all filters
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-            #                                           "start_date": self.startDT.dateTime(),
-            #                                           "end_date:": self.endDT.dateTime(),
+            #                                           "start_time": start,
+            #                                           "end_time:": end,
             #                                           "xrange": self.xrangeSB.value(),
             #                                           "yrange": self.yrangeSB.value(),
             #                                           "xres": self.xresSB.value(),
@@ -318,30 +334,30 @@ class UI(QMainWindow):
             if (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only scan_type filter
-                filtered = list(self.collection.find({"scan_type" : self.scanCB.currentText()}))
+                filtered = list(self.collection.find({"scan_type": self.scanCB.currentText()}))
 
             elif (not self.scan_type and self.start_date and not self.end_date and not self.xres and not self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only start date filter
-                filtered = list(self.collection.find({"start_date" : self.startDT.dateTime()}))
+                filtered = list(self.collection.find({"start_time": start}))
 
             elif (not self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
-                    not self.xrange and not self.yrange and not self.energy ):
+                    not self.xrange and not self.yrange and not self.energy):
                 # only end date filter
-                filtered = list(self.collection.find({"end_date" : self.endDT.dateTime()}))
+                filtered = list(self.collection.find({"end_time": self.endDT.dateTime()}))
 
             elif (not self.scan_type and not self.start_date and not self.end_date and self.xres and not self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only x resolution filter
-                filtered = list(self.collection.find({"xresolution" : self.xresSB.value()}))
+                filtered = list(self.collection.find({"xresolution": self.xresSB.value()}))
 
             elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
                     not self.xrange and not self.yrange and not self.energy ):
                 # only y resolution filter
-                filtered = list(self.collection.find({"yresolution" : self.yresSB.value()}))
+                filtered = list(self.collection.find({"yresolution": self.yresSB.value()}))
 
             elif (not self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
-                     self.xrange and not self.yrange and not self.energy ):
+                     self.xrange and not self.yrange and not self.energy):
                 # only x range filter
                 filtered = list(self.collection.find({"xrange" : self.xrangeSB.value()}))
 
@@ -359,27 +375,27 @@ class UI(QMainWindow):
             #         not self.xrange and not self.yrange and not self.energy ):
             #     # scan type and start date
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-            #                                           "start_date": self.startDT.dateTime(),
+            #                                           "start_time": start
             #                                           }))
             # elif (self.scan_type and not self.start_date and self.end_date and not self.xres and not self.yres and
             #       not self.xrange and not self.yrange and not self.energy):
             #     # scan type and end date
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-            #                                           "end_date": self.endDT.dateTime(),
+            #                                           "end_date": end,
             #                                           }))
             #
             # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
             #           not self.xrange and not self.yrange and not self.energy):
             #     # scan type and xres
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-            #                                           "xres": self.xresSB.value(),
+            #                                           "xresolution": self.xresSB.value(),
             #                                           }))
             #
             # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and self.yres and
             #       not self.xrange and not self.yrange and not self.energy):
             #     # scan type and yres
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
-            #                                           "yres": self.yresSB.value(),
+            #                                           "yresolution": self.yresSB.value(),
             #                                           }))
             #
             # elif (self.scan_type and not self.start_date and not self.end_date and not self.xres and not self.yres and
@@ -401,12 +417,43 @@ class UI(QMainWindow):
             #     filtered = list(self.collection.find({"scan_type": self.scanCB.currentText(),
             #                                           "energy": {"$in": list(range(self.eminSB.value(), self.emaxSB.value()))}
             #                                           }))
-
-
-
             else:
                 # no filters
-                filtered = []
+                self.textBrowser.append("No filters applied.")
+                filtered = [{}]
+
+            if self.scan_type:
+                if self.start_date:
+                    if self.end_date:
+                        if self.xrange:
+                            if self.yrange:
+                                if self.xres:
+                                    if self.yres:
+                                        if self.energy:
+                                            # all filters
+                                            pass
+                                        else:
+                                            # all but energy filter
+                                            pass
+                                    else:
+                                        if self.energy:
+                                            # all but yres filter
+                                            pass
+                                        else:
+                                            # all but yres and energy filters
+                                            pass
+                                else:
+                                    pass
+                            else:
+                                pass
+                        else:
+                            pass
+                    else:
+                        pass
+                else:
+                    pass
+            else:
+                pass
 
 
             for item in filtered:
@@ -454,8 +501,37 @@ class UI(QMainWindow):
                 data = f['entry0']['counter0']['data'][()]
                 serialized_data = bson.Binary(pickle.dumps(data, protocol=2))
                 scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
+
                 start_time = f['entry0']['start_time'][()].decode('utf8')
+                # make start_time match the dateTime.toSting() format
+                if start_time != "":
+                    start_year = start_time[:4]
+                    start_month = start_time[5:7]
+                    start_day = start_time[8:10]
+
+                    start_hour = start_time[11:13]
+                    start_minute = start_time[14:16]
+
+                    start = datetime.datetime.strptime(start_year + start_month + start_day + start_hour + start_minute,
+                                                       "%Y%m%d%H%M")
+
+                    start_str = datetime.datetime.strftime(start, "%a %b %d %H:%M:00 %Y").rstrip()
+                    print (start_str)
+
                 end_time = f['entry0']['end_time'][()].decode('utf8')
+                # make end_time match the dateTime().toString() format
+                if end_time != "":
+                    end_year = end_time[:4]
+                    end_month = end_time[5:7]
+                    end_day = end_time[8:10]
+
+                    end_hour = end_time[11:13]
+                    end_minute = end_time[14:16]
+
+                    end = datetime.datetime.strptime(end_year + end_month + end_day + end_hour + end_minute, "%Y%m%d%H%M")
+
+                    end_str = datetime.datetime.strftime(end, "%a %b %d %H:%M:00 %Y")
+
                 counter0_attrs = list(f['entry0']['counter0'].attrs)
                 # 'signal' is in counter0_attrs list
                 ctr0_signal = f['entry0']['counter0'].attrs['signal']
@@ -481,12 +557,10 @@ class UI(QMainWindow):
                 yrange = np.fabs(ystop - ystart)
 
                 energies_lst = list(f['entry0']['counter0']['energy'][()])
-                print (energies_lst)
                 i = 0
                 for energy in energies_lst:
                     energies_lst[i] = int(energy)
                     i += 1
-                print (energies_lst)
 
             except Exception as e:
                 self.textBrowser.append("ERROR: " + str(e))
@@ -499,20 +573,22 @@ class UI(QMainWindow):
                                                          # "data": data,
                                                          "data": serialized_data,
                                                          "scan_type": scan_type,
-                                                         "start_time": start_time,
-                                                         "end_time": end_time,
+                                                         "start_time": start_str,
+                                                         "end_time": end_str,
                                                          "xrange": int(xrange),
                                                          "yrange": int(yrange),
                                                          "xresolution": xres,
                                                          "yresolution": yres,
                                                          "energies": energies_lst
                                                          })
+
                 except Exception as e:
                     self.textBrowser.append(e)
             finally:
                 # clean up
                 f.close()
 
+            self.fileCB.addItem(name)
             self.textBrowser.append(name)
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             progress_callback.emit(int((index / max_index) * 100))
