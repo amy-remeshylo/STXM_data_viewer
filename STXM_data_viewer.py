@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QToolButton, QGraphicsView, QWidget, QLineEdit, QComboBox, QVBoxLayout, QFileDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QToolButton, QLineEdit, QComboBox,  QFileDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 from PyQt5 import QtGui
@@ -10,7 +10,6 @@ import numpy as np
 import datetime
 import os
 import pickle
-import pyqtgraph as pg
 from PIL import Image
 
 class WorkerSignals(QObject):
@@ -35,6 +34,9 @@ class Worker(QRunnable):
 
 class UI(QMainWindow):
     def __init__(self):
+        '''
+        Creates an instance of a UI object
+        '''
         super(UI, self).__init__()
 
         #load the ui file
@@ -79,6 +81,7 @@ class UI(QMainWindow):
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
         self.dirLE = self.findChild(QLineEdit, "dirLE")
+        self.dirLE.setReadOnly(True)
 
         self.filterGB = self.findChild(QGroupBox, "filtersGB")
 
@@ -89,8 +92,6 @@ class UI(QMainWindow):
 
         self.progBar = self.findChild(QProgressBar, "progressBar")
         self.progBar.hide()
-
-        # self.fileGV = self.findChild(QGraphicsView, "graphicsView")
 
         # clear filters
         self.scan_type = False
@@ -124,10 +125,16 @@ class UI(QMainWindow):
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
     def selectDirectory(self):
+        '''
+        Opens a file explorer window to allow user to choose a directory to search for .hdf5 files
+        '''
         directory = QFileDialog.getExistingDirectory(self, 'Select Folder')
         self.dirLE.setText(directory)
 
     def clearSelections(self):
+        '''
+        Clears all directory and file selections made by user
+        '''
         # show clear message on text browser
         self.textBrowser.append("Selections Cleared.")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
@@ -169,6 +176,10 @@ class UI(QMainWindow):
         self.imgLBL.setPixmap(pixmap)
 
     def displayHDF(self, filename):
+        '''
+        Displays an HDF5 file's data to the screen as an image
+        :param filename: the filename of the file to be displayed, as a string
+        '''
         if filename == "Select a File":
             pixmap = QtGui.QPixmap("white.png")
         else:
@@ -176,25 +187,36 @@ class UI(QMainWindow):
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             db_file = self.collection.find_one({"name": filename})
             data = pickle.loads(db_file["data"])
+            print(data.shape)
 
-            img = Image.fromarray(data, 'RGB')
-            img.save(filename[:-5] + '.png')
+            squeezed_data = np.squeeze(data, axis=0)
+            print(squeezed_data.shape)
+
+            img = Image.fromarray(squeezed_data, 'L')
+            print(img.size)
+            img.rotate(90)
             img.show()
 
-            img = QtGui.QImage(data.data, data.shape[1], data.shape[0], QtGui.QImage.Format_Grayscale16)
-            pixmap = QtGui.QPixmap(img)
+            img2 = QtGui.QImage(squeezed_data.data, squeezed_data.shape[1], squeezed_data.shape[0], QtGui.QImage.Format_Grayscale16)
+            pixmap = QtGui.QPixmap(img2)
 
 
         self.imgLBL.setPixmap(pixmap)
 
 
     def threadFinished(self):
+        '''
+        Declares the thread finished on the log and allows filtering of database files
+        '''
         self.textBrowser.append('Database Ready.')
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # allow filtering
         self.filterAllowed = True
 
     def submit(self):
+        '''
+        Creates a thread for database preparation and updates status on log
+        '''
         self.textBrowser.append("Directory submitted. Preparing database.")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         if self.dirLE.text() != "":
@@ -210,6 +232,9 @@ class UI(QMainWindow):
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
     def filter(self):
+        '''
+        Filters files in database according to user selections
+        '''
 
         if not self.filterAllowed:
             self.textBrowser.append("ERROR: No filters to submit. Create a database first.")
@@ -333,9 +358,18 @@ class UI(QMainWindow):
 
 
     def trackProgress(self, progress):
+        '''
+        Displays progress of database creation to screen
+        :param progress: the percent completion of the database, as an integer
+        '''
         self.progBar.setValue(progress)
 
     def prepareDatabase(self, directory, progress_callback):
+        '''
+        Finds and submits HDF5 files in a specified directory to the database
+        :param directory: the root directory in which to find files, as a string
+        :param progress_callback: the percent completion of the database, as an integer
+        '''
         self.collection.delete_many({})
 
         file_paths = []  # List which will store all the full filepaths.
