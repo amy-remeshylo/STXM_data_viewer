@@ -128,7 +128,10 @@ class UI(QMainWindow):
         '''
         Opens a file explorer window to allow user to choose a directory to search for .hdf5 files
         '''
-        directory = QFileDialog.getExistingDirectory(self, 'Select Folder')
+        directory = QFileDialog.getExistingDirectory(self, "Select Folder", "C:\controls\stxm_data")
+        if directory == '':
+            # cancel pressed
+            self.clearSelections()
         self.dirLE.setText(directory)
 
     def clearSelections(self):
@@ -194,7 +197,6 @@ class UI(QMainWindow):
 
             img = Image.fromarray(squeezed_data, 'L')
             print(img.size)
-            img.rotate(90)
             img.show()
 
             img2 = QtGui.QImage(squeezed_data.data, squeezed_data.shape[1], squeezed_data.shape[0], QtGui.QImage.Format_Grayscale16)
@@ -236,13 +238,16 @@ class UI(QMainWindow):
         Filters files in database according to user selections
         '''
 
+        self.fileCB.clear()
+        self.fileCB.addItem("Select a File")
+
         if not self.filterAllowed:
             self.textBrowser.append("ERROR: No filters to submit. Create a database first.")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+        elif self.eminSB.value() > self.emaxSB.value():
+            self.textBrowser.append("ERROR: Energy maximum cannot be less than energy minimum.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
-            self.fileCB.clear()
-            self.fileCB.addItem("Select a File")
-
             pixmap = QtGui.QPixmap("white.png")
             self.imgLBL.setPixmap(pixmap)
 
@@ -403,12 +408,15 @@ class UI(QMainWindow):
 
             try:
                 # get info to put into database
+
                 data = f['entry0']['counter0']['data'][()]
+                # put data into serialized binary form for database storage
                 serialized_data = bson.Binary(pickle.dumps(data, protocol=2))
+
                 scan_type = f['entry0']['counter0']['stxm_scan_type'][()].decode('utf8')
 
                 start_time = f['entry0']['start_time'][()].decode('utf8')
-                # make start_time match the dateTime.toSting() format
+                # make start_time match the dateTime().toSting() format
                 if start_time != "":
                     start_year = start_time[:4]
                     start_month = start_time[5:7]
@@ -442,6 +450,7 @@ class UI(QMainWindow):
                 ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
 
                 xpoints = (f['entry0']['counter0']['sample_x'][()])
+                # pad with 0 if needed
                 if xpoints.size == 1:
                     xpoints = np.append(xpoints, 0)
                     xres = 1
@@ -451,6 +460,8 @@ class UI(QMainWindow):
                 xstop = xpoints[-1]
                 xrange = np.fabs(xstop - xstart)
                 ypoints = (f['entry0']['counter0']['sample_y'][()])
+
+                # pad with 0 if needed
                 if ypoints.size == 1:
                     ypoints = np.append(ypoints, 0)
                     yres = 1
@@ -461,6 +472,7 @@ class UI(QMainWindow):
                 yrange = np.fabs(ystop - ystart)
 
                 energies_lst = list(f['entry0']['counter0']['energy'][()])
+                # convert energies to integers for database storage and filtering
                 i = 0
                 for energy in energies_lst:
                     energies_lst[i] = int(energy)
@@ -474,7 +486,6 @@ class UI(QMainWindow):
                     # store entry in db
                     result = self.collection.insert_one({"name": name,
                                                          "file_path": file,
-                                                         # "data": data,
                                                          "data": serialized_data,
                                                          "scan_type": scan_type,
                                                          "start_time": start_str,
