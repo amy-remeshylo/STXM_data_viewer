@@ -190,13 +190,10 @@ class UI(QMainWindow):
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             db_file = self.collection.find_one({"name": filename})
             data = pickle.loads(db_file["data"])
-            print(data.shape)
 
             squeezed_data = np.squeeze(data, axis=0)
-            print(squeezed_data.shape)
 
             img = Image.fromarray(squeezed_data, 'L')
-            print(img.size)
             img.show()
 
             img2 = QtGui.QImage(squeezed_data.data, squeezed_data.shape[1], squeezed_data.shape[0], QtGui.QImage.Format_Grayscale16)
@@ -256,9 +253,10 @@ class UI(QMainWindow):
 
             if self.scanCB.currentText() != "Scan Type...":
                 self.scan_type = True
+                scan = [self.scanCB.currentText()]
             else:
                 self.scan_type = False
-
+                scan = ["sample image", "sample focus"]
             if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
                 self.start_date = True
             else:
@@ -271,23 +269,31 @@ class UI(QMainWindow):
 
             if self.xresSB.value() != 0:
                 self.xres = True
+                xresolution = [self.xresSB.value()]
             else:
                 self.xres = False
+                xresolution = list(range(0,1000))
 
             if self.yresSB.value() != 0:
                 self.yres = True
+                yresolution = [self.xresSB.value()]
             else:
                 self.yres = False
+                yresolution = list(range(0,1000))
 
             if self.xrangeSB.value() != 0:
                 self.xrange = True
+                xrang = [self.xrangeSB.value()]
             else:
                 self.xrange = False
+                xrang = list(range(0, 1000))
 
             if self.yrangeSB.value() != 0:
                 self.yrange = True
+                yrang = [self.yrangeSB.value()]
             else:
                 self.yrange = False
+                yrang = list(range(1, 1000))
 
             if self.emaxSB.value() != 0:
                 self.energy = True
@@ -310,52 +316,19 @@ class UI(QMainWindow):
                 e_ending = end[8:]
                 end = e_beginning + "0" + e_ending
 
-            # collect items matching each filter
-            filterScan = list(self.collection.find({"scan_type": self.scanCB.currentText()}))
-            filterStart = list(self.collection.find({"start_time": start}))
-            filterEnd = list(self.collection.find({"end_time": end}))
-            filterXRange = list(self.collection.find({"xrange": self.xrangeSB.value()}))
-            filterYRange = list(self.collection.find({"xrange": self.yrangeSB.value()}))
-            filterXRes = list(self.collection.find({"xresolution": self.xresSB.value()}))
-            filterYRes = list(self.collection.find({"yresolution": self.yresSB.value()}))
-            filterEnergy = list(self.collection.find({"energy": {"$in": list(range(self.eminSB.value(), self.emaxSB.value()))}}))
-
-            # start with unfiltered list
-            filtered = list(self.collection.find({}))
-
-            # for each item in unfiltered list, check if it matches results of filters, if filters are active.
-            # if not, remove (filter) it.
-            # note: will not filter from default values
-            for item in filtered:
-                if self.scan_type and item not in filterScan:
-                    filtered.remove(item)
-                if self.start_date and item not in filterStart:
-                    # item may have been removed by previous filter
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.end_date and item not in filterEnd:
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.xrange and item not in filterXRange:
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.yrange and item not in filterYRange:
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.xres and item not in filterXRes:
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.yres and item not in filterYRes:
-                    if item in filtered:
-                        filtered.remove(item)
-                if self.energy and item not in filterEnergy:
-                    if item in filtered:
-                        filtered.remove(item)
 
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
                 and not self.xres and not self.yres and not self.energy):
-                self.textBrowser.append("No filters applied. Default values may not be used as filters.")
+                self.textBrowser.append("No filters applied.")
+                self.textBrowser.append("Default values may not be used as filters.")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+
+            filtered = self.collection.find({"scan_type": {"$in": scan},
+                                             "xresolution": {"$in": xresolution},
+                                             "yresolution": {"$in": yresolution},
+                                             "xrange": {"$in": xrang},
+                                             "yrange": {"$in": yrang},
+                                             })
 
             # populate dropdown with filtered items
             for item in filtered:

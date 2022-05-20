@@ -252,6 +252,11 @@
      </item>
      <item>
       <property name="text">
+       <string>coarse image scan</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>sample point spectrum</string>
       </property>
      </item>
