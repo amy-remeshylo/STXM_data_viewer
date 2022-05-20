@@ -354,7 +354,7 @@ class UI(QMainWindow):
 
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
                 and not self.xres and not self.yres and not self.energy):
-                self.textBrowser.append("No filters applied.")
+                self.textBrowser.append("No filters applied. Default values may not be used as filters.")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             # populate dropdown with filtered items
