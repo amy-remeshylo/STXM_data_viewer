@@ -262,16 +262,35 @@ class UI(QMainWindow):
                 scan = [self.scanCB.currentText()]
             else:
                 self.scan_type = False
-                scan = ["coarse image scan", "sample image", "sample focus", "generic scan", ""]
+                scan = ["coarse image scan", "sample image", "sample focus", "generic scan", "sample point spectrum",
+                        "sample line spectrum", "sample image stack", "osa image", "osa focus", "detector image"]
+
             if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
                 self.start_date = True
+                # find startDT object to use with filter
+                start_str = self.startDT.dateTime().toString()
+                # datetime object
+                start_dt = datetime.datetime.strptime(start_str, "%a %b %d %H:%M:00 %Y")
+                # turn into a comparable integer
+                start_int = int(datetime.datetime.strftime(start_dt, "%Y%m%d%H%M"))
             else:
                 self.start_date = False
+                start_dt = datetime.datetime(1970, 1, 1, 00, 00)
+                # turn into a comparable integer
+                start_int = int(datetime.datetime.strftime(start_dt, "%Y%m%d%H%M"))
 
             if self.endDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
                 self.end_date = True
+                # find endtDT object to use with filter
+                end_str = self.endDT.dateTime().toString()
+                # datetime object
+                end_dt = datetime.datetime.strptime(end_str, "%a %b %d %H:%M:00 %Y")
+                # turn into a comparable integer
+                end_int = int(datetime.datetime.strftime(end_dt, "%Y%m%d%H%M"))
             else:
                 self.end_date = False
+                end_dt = datetime.datetime.now()
+                end_int = int(datetime.datetime.strftime(end_dt, "%Y%m%d%H%M"))
 
             if self.xresSB.value() != 0:
                 self.xres = True
@@ -310,22 +329,6 @@ class UI(QMainWindow):
 
             emin = self.eminSB.value()
 
-            # find startDT string object to use with filter
-            start = self.startDT.dateTime().toString().rstrip()
-            # add 0 padding if necessary
-            if len(start) == 23:
-                s_beginning = start[:8]
-                s_ending = start[8:]
-                start = s_beginning + "0" + s_ending
-
-            # find endDT string object to use with filter
-            end = self.endDT.dateTime().toString().rstrip()
-            # add 0 padding if necessary
-            if len(end) == 23:
-                e_beginning = end[:8]
-                e_ending = end[8:]
-                end = e_beginning + "0" + e_ending
-
 
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
                 and not self.xres and not self.yres and not self.energy):
@@ -339,7 +342,9 @@ class UI(QMainWindow):
                                              "xrange": {"$in": xrang},
                                              "yrange": {"$in": yrang},
                                              "energy_min": {"$gte": emin},
-                                             "energy_max": {"$lte": emax}
+                                             "energy_max": {"$lte": emax},
+                                             "start_time": {"$gte": start_int},
+                                             "end_time": {"$lte": end_int}
                                              })
 
             # populate dropdown with filtered items
@@ -410,10 +415,7 @@ class UI(QMainWindow):
                     start_hour = start_time[11:13]
                     start_minute = start_time[14:16]
 
-                    start = datetime.datetime.strptime(start_year + start_month + start_day + start_hour + start_minute,
-                                                       "%Y%m%d%H%M")
-
-                    start_str = datetime.datetime.strftime(start, "%a %b %d %H:%M:00 %Y").rstrip()
+                    start_int = int(start_year + start_month + start_day + start_hour + start_minute)
 
                 end_time = f['entry0']['end_time'][()].decode('utf8')
                 # make end_time match the dateTime().toString() format
@@ -425,14 +427,7 @@ class UI(QMainWindow):
                     end_hour = end_time[11:13]
                     end_minute = end_time[14:16]
 
-                    end = datetime.datetime.strptime(end_year + end_month + end_day + end_hour + end_minute, "%Y%m%d%H%M")
-
-                    end_str = datetime.datetime.strftime(end, "%a %b %d %H:%M:00 %Y")
-
-                counter0_attrs = list(f['entry0']['counter0'].attrs)
-                # 'signal' is in counter0_attrs list
-                ctr0_signal = f['entry0']['counter0'].attrs['signal']
-                ctr0_data = f['entry0']['counter0'][ctr0_signal][()]
+                    end_int = int(end_year + end_month + end_day + end_hour + end_minute)
 
                 xpoints = (f['entry0']['counter0']['sample_x'][()])
                 # pad with 0 if needed
@@ -473,8 +468,8 @@ class UI(QMainWindow):
                                                          "file_path": file,
                                                          "data": serialized_data,
                                                          "scan_type": scan_type,
-                                                         "start_time": start_str,
-                                                         "end_time": end_str,
+                                                         "start_time": start_int,
+                                                         "end_time": end_int,
                                                          "xrange": int(xrange),
                                                          "yrange": int(yrange),
                                                          "xresolution": xres,
