@@ -61,16 +61,22 @@ class UI(QMainWindow):
 
         self.xrangeSB = self.findChild(QSpinBox, "xrangeSB")
         self.xrangeSB.setMaximum(9999)
+        self.xrangeSB.setMinimum(0)
         self.yrangeSB = self.findChild(QSpinBox, "yrangeSB")
         self.yrangeSB.setMaximum(9999)
+        self.yrangeSB.setMinimum(0)
         self.xresSB = self.findChild(QSpinBox, "xresSB")
         self.xresSB.setMaximum(9999)
+        self.xresSB.setMinimum(0)
         self.yresSB = self.findChild(QSpinBox, "yresSB")
         self.yresSB.setMaximum(9999)
+        self.yresSB.setMinimum(0)
         self.eminSB = self.findChild(QSpinBox, "eminSB")
         self.eminSB.setMaximum(9999)
+        self.eminSB.setMinimum(0)
         self.emaxSB = self.findChild(QSpinBox, "emaxSB")
         self.emaxSB.setMaximum(9999)
+        self.emaxSB.setMinimum(0)
 
         self.scanCB = self.findChild(QComboBox, "scanCB")
         self.fileCB = self.findChild(QComboBox, "fileCB")
@@ -256,7 +262,7 @@ class UI(QMainWindow):
                 scan = [self.scanCB.currentText()]
             else:
                 self.scan_type = False
-                scan = ["sample image", "sample focus"]
+                scan = ["coarse image scan", "sample image", "sample focus", "generic scan", ""]
             if self.startDT.dateTime() != datetime.datetime(2000, 1, 1, 00, 00):
                 self.start_date = True
             else:
@@ -293,12 +299,16 @@ class UI(QMainWindow):
                 yrang = [self.yrangeSB.value()]
             else:
                 self.yrange = False
-                yrang = list(range(1, 1000))
+                yrang = list(range(0, 1000))
 
             if self.emaxSB.value() != 0:
                 self.energy = True
+                emax = self.emaxSB.value()
             else:
                 self.energy = False
+                emax = 9999
+
+            emin = self.eminSB.value()
 
             # find startDT string object to use with filter
             start = self.startDT.dateTime().toString().rstrip()
@@ -328,6 +338,8 @@ class UI(QMainWindow):
                                              "yresolution": {"$in": yresolution},
                                              "xrange": {"$in": xrang},
                                              "yrange": {"$in": yrang},
+                                             "energy_min": {"$gte": emin},
+                                             "energy_max": {"$lte": emax}
                                              })
 
             # populate dropdown with filtered items
@@ -467,7 +479,8 @@ class UI(QMainWindow):
                                                          "yrange": int(yrange),
                                                          "xresolution": xres,
                                                          "yresolution": yres,
-                                                         "energies": energies_lst
+                                                         "energy_min": min(energies_lst),
+                                                         "energy_max": max(energies_lst)
                                                          })
 
                 except Exception as e:
