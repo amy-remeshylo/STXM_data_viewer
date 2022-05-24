@@ -10,7 +10,7 @@ import numpy as np
 import datetime
 import os
 import pickle
-from PIL import Image
+from PIL import Image, ImageOps
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -190,22 +190,25 @@ class UI(QMainWindow):
         :param filename: the filename of the file to be displayed, as a string
         '''
         if filename == "Select a File":
+            # no file selected
             pixmap = QtGui.QPixmap("white.png")
         else:
+            # display selected file
             self.textBrowser.append("Displaying file " + filename)
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             db_file = self.collection.find_one({"name": filename})
             data = pickle.loads(db_file["data"])
 
-            squeezed_data = np.squeeze(data, axis=0)
+            # normalize data
+            data /= (data.max()/255)
 
-            img = Image.fromarray(squeezed_data, 'L')
-            img.show()
+            # convert numpy array to image
+            img = Image.fromarray(data[0].astype("uint8"), "L")
+            ImageOps.flip(img).save("temp.png")
 
-            img2 = QtGui.QImage(squeezed_data.data, squeezed_data.shape[1], squeezed_data.shape[0], QtGui.QImage.Format_Grayscale16)
-            pixmap = QtGui.QPixmap(img2)
+            pixmap = QtGui.QPixmap("temp.png")
 
-
+        # display pixmap
         self.imgLBL.setPixmap(pixmap)
 
 
