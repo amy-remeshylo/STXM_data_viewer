@@ -109,9 +109,6 @@ class UI(QMainWindow):
         self.yrange = False
         self.energy = False
 
-        # set filter boolean false (no filters may be used)
-        self.filterAllowed = False
-
         # set up threadpool
         self.threadpool = QThreadPool()
 
@@ -120,13 +117,40 @@ class UI(QMainWindow):
         self.client = MongoClient(self.cluster)
         self.db = self.client["STXM_data_viewer"]
         self.collection = self.db["STXM_data"]
-        # start with a cleared db
-        self.collection.delete_many({})
+        # check if db is created at time of launch
+        counter = 0
+        directory = ""
+        for item in self.collection.find({}):
+            counter += 1
+            self.fileCB.addItem(item["name"])
+            # find directory name by comparing to known directory name and file_path of item,
+            # and walking backwards through directories if needed
+            if os.path.dirname(item["file_path"]) != directory:
+                if directory == "":
+                    directory = os.path.dirname(item["file_path"])
+                elif directory == item["file_path"][:len(directory) - len(item["file_path"])]:
+                    directory = directory
+                else:
+                    directory = os.path.dirname(directory)
+
+        # database is already active
+        if counter != 0:
+            self.textBrowser.append("Database ready.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+            self.filterAllowed = True
+            self.dirLE.setText(directory)
+
+        # no active database
+        else:
+            self.textBrowser.append("Create a database to start.")
+            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+            self.filterAllowed = False
+            self.dirLE.setText("")
 
         # connect signals to slots
-        self.submitBTN.clicked.connect(self.submit)
+        self.submitBTN.clicked.connect(self.submitDatabase)
         self.clearBTN.clicked.connect(self.clearSelections)
-        self.filterBTN.clicked.connect(self.filter)
+        self.filterBTN.clicked.connect(self.filterData)
         self.toolBTN.clicked.connect(self.selectDirectory)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
@@ -184,6 +208,9 @@ class UI(QMainWindow):
         pixmap = QtGui.QPixmap("white.png")
         self.imgLBL.setPixmap(pixmap)
 
+        # clear db
+        self.collection.delete_many({})
+
     def displayHDF(self, filename):
         '''
         Displays an HDF5 file's data to the screen as an image
@@ -216,12 +243,12 @@ class UI(QMainWindow):
         '''
         Declares the thread finished on the log and allows filtering of database files
         '''
-        self.textBrowser.append('Database Ready.')
+        self.textBrowser.append('Database ready.')
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # allow filtering
         self.filterAllowed = True
 
-    def submit(self):
+    def submitDatabase(self):
         '''
         Creates a thread for database preparation and updates status on log
         '''
@@ -239,7 +266,7 @@ class UI(QMainWindow):
             self.textBrowser.append("ERROR: File Directory field is required.")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-    def filter(self):
+    def filterData(self):
         '''
         Filters files in database according to user selections
         '''
@@ -488,7 +515,7 @@ class UI(QMainWindow):
                 f.close()
 
             self.fileCB.addItem(name)
-            self.textBrowser.append(name)
+            # self.textBrowser.append(name)
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
