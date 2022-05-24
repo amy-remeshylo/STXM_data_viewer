@@ -135,14 +135,14 @@ class UI(QMainWindow):
 
         # database is already active
         if counter != 0:
-            self.textBrowser.append("Database ready.")
+            self.textBrowser.append("<p style='color:black'>Database ready.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             self.filterAllowed = True
             self.dirLE.setText(directory)
 
         # no active database
         else:
-            self.textBrowser.append("Create a database to start.")
+            self.textBrowser.append("<p style='color:black'>Create a database to start.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             self.filterAllowed = False
             self.dirLE.setText("")
@@ -169,7 +169,7 @@ class UI(QMainWindow):
         Clears all directory and file selections made by user
         '''
         # show clear message on text browser
-        self.textBrowser.append("Selections Cleared.")
+        self.textBrowser.append("<p style='color:black'>Selections Cleared.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # clear line edit and set all spin boxes, combo boxes, and date times back to default
         self.dirLE.setText("")
@@ -221,19 +221,23 @@ class UI(QMainWindow):
             pixmap = QtGui.QPixmap("white.png")
         else:
             # display selected file
-            self.textBrowser.append("Displaying file " + filename)
-            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
-            db_file = self.collection.find_one({"name": filename})
-            data = pickle.loads(db_file["data"])
+            try:
+                self.textBrowser.append("<p style='color:black'>Displaying file " + filename + "</p>")
+                self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                db_file = self.collection.find_one({"name": filename})
+                data = pickle.loads(db_file["data"])
 
-            # normalize data
-            data /= (data.max()/255)
+                # normalize data
+                data /= (data.max()/255)
 
-            # convert numpy array to image
-            img = Image.fromarray(data[0].astype("uint8"), "L")
-            ImageOps.flip(img).save("temp.png")
+                # convert numpy array to image
+                img = Image.fromarray(data[0].astype("uint8"), "L")
+                ImageOps.flip(img).save("temp.png")
 
-            pixmap = QtGui.QPixmap("temp.png")
+                pixmap = QtGui.QPixmap("temp.png")
+            except Exception as e:
+                self.textBrowser.append("<p style='color:red'>ERROR: " + str(e) + "</p>")
+                self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
         # display pixmap
         self.imgLBL.setPixmap(pixmap)
@@ -243,7 +247,13 @@ class UI(QMainWindow):
         '''
         Declares the thread finished on the log and allows filtering of database files
         '''
-        self.textBrowser.append('Database ready.')
+        # populate dropdown
+        self.fileCB.clear()
+        self.fileCB.addItem("Select a File")
+        for item in self.collection.find({}):
+            self.fileCB.addItem(item["name"])
+
+        self.textBrowser.append("<p style='color:black'>Database ready.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         # allow filtering
         self.filterAllowed = True
@@ -252,18 +262,21 @@ class UI(QMainWindow):
         '''
         Creates a thread for database preparation and updates status on log
         '''
-        self.textBrowser.append("Directory submitted. Preparing database.")
+        # self.textBrowser.setStyleSheet("color: black;"
+        #                                 "font: 10pt")
+        self.textBrowser.append("<p style='color:black'>Directory submitted. Preparing database.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         if self.dirLE.text() != "":
             self.progBar.setValue(0)
             self.progBar.show()
-            # worker = Worker(lambda: self.prepareDatabase(self.dirLE.text(), self.signals.progress))
             worker = Worker(self.prepareDatabase, self.dirLE.text())
             worker.signals.finished.connect(self.threadFinished)
             worker.signals.progress.connect(self.trackProgress)
             self.threadpool.start(worker)
         else:
-            self.textBrowser.append("ERROR: File Directory field is required.")
+            # self.textBrowser.setStyleSheet("color: red;"
+            #                                "font: 10pt")
+            self.textBrowser.append("<p style='color:red'>ERROR: File Directory field is required.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
     def filterData(self):
@@ -275,16 +288,16 @@ class UI(QMainWindow):
         self.fileCB.addItem("Select a File")
 
         if not self.filterAllowed:
-            self.textBrowser.append("ERROR: No filters to submit. Create a database first.")
+            self.textBrowser.append("<p style='color:red'>ERROR: No filters to submit. Create a database first.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         elif self.eminSB.value() > self.emaxSB.value():
-            self.textBrowser.append("ERROR: Energy maximum cannot be less than energy minimum.")
+            self.textBrowser.append("<p style='color:red'>ERROR: Energy maximum cannot be less than energy minimum.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
             pixmap = QtGui.QPixmap("white.png")
             self.imgLBL.setPixmap(pixmap)
 
-            self.textBrowser.append("Filters submitted.")
+            self.textBrowser.append("<p style='color:black'>Filters submitted.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             if self.scanCB.currentText() != "Scan Type...":
@@ -362,8 +375,8 @@ class UI(QMainWindow):
 
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
                 and not self.xres and not self.yres and not self.energy):
-                self.textBrowser.append("No filters applied.")
-                self.textBrowser.append("Default values may not be used as filters.")
+                self.textBrowser.append("<p style='color:black'>No filters applied.</p>")
+                self.textBrowser.append("<p style='color:black'>Default values may not be used as filters.</p>")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             filtered = self.collection.find({"scan_type": {"$in": scan},
@@ -489,7 +502,7 @@ class UI(QMainWindow):
                     i += 1
 
             except Exception as e:
-                self.textBrowser.append("ERROR: " + str(e))
+                self.textBrowser.append("<p style='color:red'>ERROR: " + str(e) + "</p>")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             else:
                 try:
@@ -509,13 +522,11 @@ class UI(QMainWindow):
                                                          })
 
                 except Exception as e:
-                    self.textBrowser.append(e)
+                    self.textBrowser.append("<p style='color:red'>ERROR: " + str(e) + "</p>")
             finally:
                 # clean up
                 f.close()
 
-            self.fileCB.addItem(name)
-            # self.textBrowser.append(name)
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
