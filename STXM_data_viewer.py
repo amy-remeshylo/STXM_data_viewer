@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QToolButton, QLineEdit, QComboBox,  QFileDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
 from PyQt5 import uic
-from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool, QCommandLineParser, QCommandLineOption
+from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
 from PyQt5 import QtGui
 import sys
 from pymongo import MongoClient
@@ -15,7 +15,6 @@ import getopt
 
 USAGE = f"Usage: python {sys.argv[0]} [--help] | [-v] [--version] [-p] [--progress] [-d <dir>] [--directory <dir>]"
 VERSION = f"{sys.argv[0]} version 1.0"
-
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -159,6 +158,12 @@ class UI(QMainWindow):
         self.toolBTN.clicked.connect(self.selectDirectory)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
+        self.directory, self.trackP = parse(sys.argv[1:])
+
+        if self.directory != "":
+            self.submitDatabase()
+
+
     def selectDirectory(self):
         '''
         Opens a file explorer window to allow user to choose a directory to search for .hdf5 files
@@ -260,6 +265,10 @@ class UI(QMainWindow):
 
         self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Database ready.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+
+        if self.trackP == True:
+            print("Database ready.")
+
         # allow filtering
         self.filterAllowed = True
 
@@ -267,10 +276,18 @@ class UI(QMainWindow):
         '''
         Creates a thread for database preparation and updates status on log
         '''
-        # self.textBrowser.setStyleSheet("color: black;"
-        #                                 "font: 10pt")
         self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Directory submitted. Preparing database.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+
+        if self.trackP == True:
+            print ("Directory submitted. Preparing database.")
+
+        if self.directory != "":
+            worker = Worker(self.prepareDatabase, self.directory)
+            worker.signals.finished.connect(self.threadFinished)
+            worker.signals.progress.connect(self.trackProgress)
+            self.threadpool.start(worker)
+
         if self.dirLE.text() != "":
             self.progBar.setValue(0)
             self.progBar.show()
@@ -407,6 +424,11 @@ class UI(QMainWindow):
         '''
         self.progBar.setValue(progress)
 
+        if self.trackP == True:
+            print(f"Database creation: {progress}%", end="\r")
+            if progress == 100:
+                print(end="\n")
+
     def prepareDatabase(self, directory, progress_callback):
         '''
         Finds and submits HDF5 files in a specified directory to the database
@@ -540,18 +562,25 @@ class UI(QMainWindow):
             index += 1
 
 def parse(args):
-    options, arguments = getopt.getopt(
-        args,
-        "vhpd:",
-        ["version", "help", "progress", "directory="])
+    try:
+        options, arguments = getopt.getopt(
+            args,
+            "vhpd:",
+            ["version", "help", "progress", "directory="])
+    except getopt.GetoptError as err:
+        print(err)
+        print(USAGE)
+        sys.exit()
 
     directory = ""
     progress = False
     for o, a in options:
         if o in ("-v", "--version"):
             print(VERSION)
+            sys.exit()
         if o in ("-h", "--help"):
             print(USAGE)
+            sys.exit()
         if o in ("-p", "--progress"):
             progress = True
         if o in ("-d", "--directory"):
