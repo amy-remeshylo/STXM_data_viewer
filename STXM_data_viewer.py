@@ -50,61 +50,29 @@ class UI(QMainWindow):
         uic.loadUi("STXM_data_viewer.ui", self)
         self.setWindowTitle("STXM Data Viewer")
 
-        # define widgets
-        self.filterLBL = self.findChild(QLabel, "filterLBL")
-        self.startLBL = self.findChild(QLabel, "startLBL")
-        self.endLBL = self.findChild(QLabel, "endLBL")
-        self.xrangeLBL = self.findChild(QLabel, "xrangeLBL")
-        self.yrangeLBL = self.findChild(QLabel, "yrangeLBL")
-        self.xresLBL = self.findChild(QLabel, "xresLBL")
-        self.yresLBL = self.findChild(QLabel, "yresLBL")
-        self.energyLBL = self.findChild(QLabel, "energyLBL")
-        self.toLBL = self.findChild(QLabel, "toLBL")
-        self.dirLBL = self.findChild(QLabel, "dirLBL")
-        self.imgLBL = self.findChild(QLabel, "imgLBL")
-
-        self.startDT = self.findChild(QDateTimeEdit, "startDT")
-        self.endDT = self.findChild(QDateTimeEdit, "endDT")
-
-        self.xrangeSB = self.findChild(QSpinBox, "xrangeSB")
         self.xrangeSB.setMaximum(9999)
         self.xrangeSB.setMinimum(0)
-        self.yrangeSB = self.findChild(QSpinBox, "yrangeSB")
+
         self.yrangeSB.setMaximum(9999)
         self.yrangeSB.setMinimum(0)
-        self.xresSB = self.findChild(QSpinBox, "xresSB")
+
         self.xresSB.setMaximum(9999)
         self.xresSB.setMinimum(0)
-        self.yresSB = self.findChild(QSpinBox, "yresSB")
+
         self.yresSB.setMaximum(9999)
         self.yresSB.setMinimum(0)
-        self.eminSB = self.findChild(QSpinBox, "eminSB")
+
         self.eminSB.setMaximum(9999)
         self.eminSB.setMinimum(0)
-        self.emaxSB = self.findChild(QSpinBox, "emaxSB")
+
         self.emaxSB.setMaximum(9999)
         self.emaxSB.setMinimum(0)
 
-        self.scanCB = self.findChild(QComboBox, "scanCB")
-        self.fileCB = self.findChild(QComboBox, "fileCB")
-
-        self.progressBar = self.findChild(QProgressBar, "progressBar")
-
-        self.textBrowser = self.findChild(QTextBrowser, "textBrowser")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-        self.dirLE = self.findChild(QLineEdit, "dirLE")
         self.dirLE.setReadOnly(True)
 
-        self.filterGB = self.findChild(QGroupBox, "filtersGB")
-
-        self.submitBTN = self.findChild(QPushButton, "submitBTN")
-        self.clearBTN = self.findChild(QPushButton, "clearBTN")
-        self.filterBTN = self.findChild(QPushButton, "filterBTN")
-        self.toolBTN = self.findChild(QToolButton, "toolBTN")
-
-        self.progBar = self.findChild(QProgressBar, "progressBar")
-        self.progBar.hide()
+        self.progressBar.hide()
 
         # clear filters
         self.scan_type = False
@@ -223,8 +191,8 @@ class UI(QMainWindow):
         self.fileCB.addItem("Select a File")
 
         # reset and hide progress bar from view
-        self.progBar.hide()
-        self.progBar.setValue(0)
+        self.progressBar.hide()
+        self.progressBar.setValue(0)
 
         # clear filters
         self.scan_type = False
@@ -294,7 +262,9 @@ class UI(QMainWindow):
 
         if self.trackP:
             print("Database ready.")
-            # sys.exit()
+
+        if self.directory != "":
+            sys.exit()
 
         # allow filtering
         self.filterAllowed = True
@@ -316,8 +286,8 @@ class UI(QMainWindow):
 
         # directory specified in GUI
         if self.dirLE.text() != "":
-            self.progBar.setValue(0)
-            self.progBar.show()
+            self.progressBar.setValue(0)
+            self.progressBar.show()
             worker = Worker(self.prepareDatabase, self.dirLE.text())
             worker.signals.finished.connect(self.threadFinished)
             worker.signals.progress.connect(self.trackProgress)
@@ -453,7 +423,7 @@ class UI(QMainWindow):
         Displays progress of database creation to screen
         :param progress: the percent completion of the database, as an integer
         '''
-        self.progBar.setValue(progress)
+        self.progressBar.setValue(progress)
 
         if self.trackP:
             print(f"Database creation: {progress}%", end="\r")
@@ -586,9 +556,9 @@ class UI(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     UIWindow = UI()
-    # if not sys.argv[1:]:
-    #     UIWindow.show()
-    UIWindow.show()
+    if not sys.argv[1:]:
+        UIWindow.show()
+    # UIWindow.show()
     sys.exit(app.exec_())
 
 
