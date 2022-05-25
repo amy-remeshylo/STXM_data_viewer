@@ -113,16 +113,16 @@ class UI(QMainWindow):
             self.dirLE.setText("")
 
         # connect signals to slots
-        self.submitBTN.clicked.connect(self.submitDatabase)
-        self.clearBTN.clicked.connect(self.clearSelections)
-        self.filterBTN.clicked.connect(self.filterData)
-        self.toolBTN.clicked.connect(self.selectDirectory)
-        self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
+        self.submitBTN.clicked.connect(self.submit_database)
+        self.clearBTN.clicked.connect(self.clear_selections)
+        self.filterBTN.clicked.connect(self.filter_data)
+        self.toolBTN.clicked.connect(self.select_directory)
+        self.fileCB.activated.connect(lambda: self.display_hdf(self.fileCB.currentText()))
 
         self.directory, self.trackP = self.parse(sys.argv[1:])
 
         if self.directory != "":
-            self.submitDatabase()
+            self.submit_database()
 
     def parse(self, args):
         try:
@@ -157,17 +157,17 @@ class UI(QMainWindow):
 
         return directory, progress
 
-    def selectDirectory(self):
+    def select_directory(self):
         '''
         Opens a file explorer window to allow user to choose a directory to search for .hdf5 files
         '''
         directory = QFileDialog.getExistingDirectory(self, "Select Folder", "C:\\controls\\stxm_data")
         if directory == '':
             # cancel pressed
-            self.clearSelections()
+            self.clear_selections()
         self.dirLE.setText(directory)
 
-    def clearSelections(self):
+    def clear_selections(self):
         '''
         Clears all directory and file selections made by user
         '''
@@ -214,7 +214,7 @@ class UI(QMainWindow):
         # clear db
         self.collection.delete_many({})
 
-    def displayHDF(self, filename):
+    def display_hdf(self, filename):
         '''
         Displays an HDF5 file's data to the screen as an image
         :param filename: the filename of the file to be displayed, as a string
@@ -246,7 +246,7 @@ class UI(QMainWindow):
         # display pixmap
         self.imgLBL.setPixmap(pixmap)
 
-    def threadFinished(self):
+    def thread_finished(self):
         '''
         Declares the thread finished on the log and allows filtering of database files
         '''
@@ -269,7 +269,7 @@ class UI(QMainWindow):
         # allow filtering
         self.filterAllowed = True
 
-    def submitDatabase(self):
+    def submit_database(self):
         '''
         Creates a thread for database preparation and updates status on log
         '''
@@ -288,9 +288,9 @@ class UI(QMainWindow):
         if self.dirLE.text() != "":
             self.progressBar.setValue(0)
             self.progressBar.show()
-            worker = Worker(self.prepareDatabase, self.dirLE.text())
-            worker.signals.finished.connect(self.threadFinished)
-            worker.signals.progress.connect(self.trackProgress)
+            worker = Worker(self.prepare_database, self.dirLE.text())
+            worker.signals.finished.connect(self.thread_finished)
+            worker.signals.progress.connect(self.track_progress)
             self.threadpool.start(worker)
 
         # no directory specified
@@ -301,7 +301,7 @@ class UI(QMainWindow):
                 "<p style='color:red; margin:0; padding:0'>ERROR: File Directory field is required.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-    def filterData(self):
+    def filter_data(self):
         '''
         Filters files in database according to user selections
         '''
@@ -418,7 +418,7 @@ class UI(QMainWindow):
             for item in filtered:
                 self.fileCB.addItem(item['name'])
 
-    def trackProgress(self, progress):
+    def track_progress(self, progress):
         '''
         Displays progress of database creation to screen
         :param progress: the percent completion of the database, as an integer
@@ -430,7 +430,7 @@ class UI(QMainWindow):
             if progress == 100:
                 print(end="\n")
 
-    def prepareDatabase(self, directory, progress_callback):
+    def prepare_database(self, directory, progress_callback):
         '''
         Finds and submits HDF5 files in a specified directory to the database
         :param directory: the root directory in which to find files, as a string
