@@ -151,10 +151,43 @@ class UI(QMainWindow):
         self.toolBTN.clicked.connect(self.selectDirectory)
         self.fileCB.activated.connect(lambda: self.displayHDF(self.fileCB.currentText()))
 
-        self.directory, self.trackP = parse(sys.argv[1:])
+        self.directory, self.trackP = self.parse(sys.argv[1:])
 
         if self.directory != "":
             self.submitDatabase()
+
+    def parse(self, args):
+        try:
+            options, arguments = getopt.getopt(
+                args,
+                "vhpd:",
+                ["version", "help", "progress", "directory="])
+        except getopt.GetoptError as err:
+            print(err)
+            print(USAGE)
+            sys.exit()
+
+        directory = ""
+        progress = False
+        for o, a in options:
+            if o in ("-v", "--version"):
+                print(VERSION)
+                sys.exit()
+            if o in ("-h", "--help"):
+                print(USAGE)
+                sys.exit()
+            if o in ("-p", "--progress"):
+                progress = True
+            if o in ("-d", "--directory"):
+                directory = a
+
+        if len(arguments) > 4:
+            raise SystemExit(USAGE)
+        elif len(options) == 1 and progress:
+            print("Progress flag may not be used without -d option")
+            raise SystemExit(USAGE)
+
+        return directory, progress
 
     def selectDirectory(self):
         '''
@@ -548,40 +581,6 @@ class UI(QMainWindow):
 
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
-
-
-def parse(args):
-    try:
-        options, arguments = getopt.getopt(
-            args,
-            "vhpd:",
-            ["version", "help", "progress", "directory="])
-    except getopt.GetoptError as err:
-        print(err)
-        print(USAGE)
-        sys.exit()
-
-    directory = ""
-    progress = False
-    for o, a in options:
-        if o in ("-v", "--version"):
-            print(VERSION)
-            sys.exit()
-        if o in ("-h", "--help"):
-            print(USAGE)
-            sys.exit()
-        if o in ("-p", "--progress"):
-            progress = True
-        if o in ("-d", "--directory"):
-            directory = a
-
-    if len(arguments) > 4:
-        raise SystemExit(USAGE)
-    elif len(options) == 1 and progress:
-        print("Progress flag may not be used without -d option")
-        raise SystemExit(USAGE)
-
-    return directory, progress
 
 
 def main():
