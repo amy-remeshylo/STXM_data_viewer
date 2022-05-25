@@ -261,7 +261,7 @@ class UI(QMainWindow):
 
         if self.trackP:
             print("Database ready.")
-            sys.exit()
+            # sys.exit()
 
         # allow filtering
         self.filterAllowed = True
@@ -277,12 +277,11 @@ class UI(QMainWindow):
         if self.trackP:
             print("Directory submitted. Preparing database.")
 
+        # directory specified from command line
         if self.directory != "":
-            worker = Worker(self.prepareDatabase, self.directory)
-            worker.signals.finished.connect(self.threadFinished)
-            worker.signals.progress.connect(self.trackProgress)
-            self.threadpool.start(worker)
+            self.dirLE.setText(self.directory)
 
+        # directory specified in GUI
         if self.dirLE.text() != "":
             self.progBar.setValue(0)
             self.progBar.show()
@@ -290,6 +289,8 @@ class UI(QMainWindow):
             worker.signals.finished.connect(self.threadFinished)
             worker.signals.progress.connect(self.trackProgress)
             self.threadpool.start(worker)
+
+        # no directory specified
         else:
             # self.textBrowser.setStyleSheet("color: red;"
             #                                "font: 10pt")
@@ -574,7 +575,6 @@ def parse(args):
         if o in ("-d", "--directory"):
             directory = a
 
-    # if not arguments or len(arguments) > 4:
     if len(arguments) > 4:
         raise SystemExit(USAGE)
     elif len(options) == 1 and progress:
@@ -587,8 +587,9 @@ def parse(args):
 def main():
     app = QApplication(sys.argv)
     UIWindow = UI()
-    if not sys.argv[1:]:
-        UIWindow.show()
+    # if not sys.argv[1:]:
+    #     UIWindow.show()
+    UIWindow.show()
     sys.exit(app.exec_())
 
 
