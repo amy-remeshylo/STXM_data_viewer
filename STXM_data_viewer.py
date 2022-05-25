@@ -125,23 +125,13 @@ class UI(QMainWindow):
         self.db = self.client["STXM_data_viewer"]
         self.collection = self.db["STXM_data"]
         # check if db is created at time of launch
-        counter = 0
         directory = ""
         for item in self.collection.find({}):
-            counter += 1
             self.fileCB.addItem(item["name"])
-            # find directory name by comparing to known directory name and file_path of item,
-            # and walking backwards through directories if needed
-            if os.path.dirname(item["file_path"]) != directory:
-                if directory == "":
-                    directory = os.path.dirname(item["file_path"])
-                elif directory == item["file_path"][:len(directory) - len(item["file_path"])]:
-                    directory = directory
-                else:
-                    directory = os.path.dirname(directory)
+            directory = item["directory"]
 
         # database is already active
-        if counter != 0:
+        if directory != "":
             self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Database ready.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             self.filterAllowed = True
@@ -259,6 +249,7 @@ class UI(QMainWindow):
         '''
         Declares the thread finished on the log and allows filtering of database files
         '''
+
         # populate dropdown
         self.fileCB.clear()
         self.fileCB.addItem("Select a File")
@@ -270,6 +261,7 @@ class UI(QMainWindow):
 
         if self.trackP:
             print("Database ready.")
+            sys.exit()
 
         # allow filtering
         self.filterAllowed = True
@@ -461,13 +453,7 @@ class UI(QMainWindow):
             progress_callback.emit(100)
 
         for file in file_paths:
-            name = ""
-            i = 1
-            character = file[-i]
-            while character != "\\":
-                name = character + name
-                i += 1
-                character = file[-i]
+            name = os.path.basename(file)
 
             f = h5py.File(file, "r")
 
@@ -534,14 +520,12 @@ class UI(QMainWindow):
                     i += 1
 
             except Exception as e:
-                # self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
-                # # self.textBrowser.append(name)
-                # self.textBrowser.moveCursor(QtGui.QTextCursor.End)
                 pass
             else:
                 try:
                     # store entry in db
                     result = self.collection.insert_one({"name": name,
+                                                         "directory": directory,
                                                          "file_path": file,
                                                          "data": serialized_data,
                                                          "scan_type": scan_type,
@@ -556,9 +540,6 @@ class UI(QMainWindow):
                                                          })
 
                 except Exception as e:
-                    # self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
-                    # # self.textBrowser.append(name)
-                    # self.textBrowser.moveCursor(QtGui.QTextCursor.End)
                     pass
             finally:
                 # clean up
@@ -595,6 +576,9 @@ def parse(args):
 
     # if not arguments or len(arguments) > 4:
     if len(arguments) > 4:
+        raise SystemExit(USAGE)
+    elif len(options) == 1 and progress:
+        print("Progress flag may not be used without -d option")
         raise SystemExit(USAGE)
 
     return directory, progress
