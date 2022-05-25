@@ -1,20 +1,22 @@
-from PyQt5.QtWidgets import QToolButton, QLineEdit, QComboBox,  QFileDialog, QGroupBox, QTextBrowser, QMainWindow, QApplication, QPushButton, QLabel, QMessageBox, QDateTimeEdit, QSpinBox, QProgressBar
-from PyQt5 import uic
-from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
-from PyQt5 import QtGui
+import datetime
+import getopt
+import os
+import pickle
 import sys
-from pymongo import MongoClient
 import bson
 import h5py
 import numpy as np
-import datetime
-import os
-import pickle
 from PIL import Image, ImageOps
-import getopt
+from PyQt5 import QtGui
+from PyQt5 import uic
+from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
+from PyQt5.QtWidgets import QToolButton, QLineEdit, QComboBox, QFileDialog, QGroupBox, QTextBrowser, QMainWindow, \
+    QApplication, QPushButton, QLabel, QDateTimeEdit, QSpinBox, QProgressBar
+from pymongo import MongoClient
 
 USAGE = f"Usage: python {sys.argv[0]} [--help] | [-v] [--version] [-p] [--progress] [-d <dir>] [--directory <dir>]"
 VERSION = f"{sys.argv[0]} version 1.0"
+
 
 class WorkerSignals(QObject):
     # define worker signals
@@ -23,18 +25,19 @@ class WorkerSignals(QObject):
 
 
 class Worker(QRunnable):
-        def __init__(self, fn, *args, **kwargs):
-            super(Worker, self).__init__()
-            self.fn = fn
-            self.args = args
-            self.kwargs = kwargs
-            self.signals = WorkerSignals()
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
 
-            self.kwargs['progress_callback'] = self.signals.progress
+        self.kwargs['progress_callback'] = self.signals.progress
 
-        def run(self):
-            self.fn(*self.args, **self.kwargs)
-            self.signals.finished.emit()
+    def run(self):
+        self.fn(*self.args, **self.kwargs)
+        self.signals.finished.emit()
+
 
 class UI(QMainWindow):
     def __init__(self):
@@ -43,8 +46,8 @@ class UI(QMainWindow):
         '''
         super(UI, self).__init__()
 
-        #load the ui file
-        uic.loadUi("STXM_data_viewer.ui",self)
+        # load the ui file
+        uic.loadUi("STXM_data_viewer.ui", self)
         self.setWindowTitle("STXM Data Viewer")
 
         # define widgets
@@ -163,12 +166,11 @@ class UI(QMainWindow):
         if self.directory != "":
             self.submitDatabase()
 
-
     def selectDirectory(self):
         '''
         Opens a file explorer window to allow user to choose a directory to search for .hdf5 files
         '''
-        directory = QFileDialog.getExistingDirectory(self, "Select Folder", "C:\controls\stxm_data")
+        directory = QFileDialog.getExistingDirectory(self, "Select Folder", "C:\\controls\\stxm_data")
         if directory == '':
             # cancel pressed
             self.clearSelections()
@@ -232,13 +234,14 @@ class UI(QMainWindow):
         else:
             # display selected file
             try:
-                self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Displaying file " + filename + "</p>")
+                self.textBrowser.append(
+                    "<p style='color:black; margin:0; padding:0'>Displaying file " + filename + "</p>")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
                 db_file = self.collection.find_one({"name": filename})
                 data = pickle.loads(db_file["data"])
 
                 # normalize data
-                data /= (data.max()/255)
+                data /= (data.max() / 255)
 
                 # convert numpy array to image
                 img = Image.fromarray(data[0].astype("uint8"), "L")
@@ -251,7 +254,6 @@ class UI(QMainWindow):
 
         # display pixmap
         self.imgLBL.setPixmap(pixmap)
-
 
     def threadFinished(self):
         '''
@@ -266,7 +268,7 @@ class UI(QMainWindow):
         self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Database ready.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-        if self.trackP == True:
+        if self.trackP:
             print("Database ready.")
 
         # allow filtering
@@ -276,11 +278,12 @@ class UI(QMainWindow):
         '''
         Creates a thread for database preparation and updates status on log
         '''
-        self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Directory submitted. Preparing database.</p>")
+        self.textBrowser.append(
+            "<p style='color:black; margin:0; padding:0'>Directory submitted. Preparing database.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
-        if self.trackP == True:
-            print ("Directory submitted. Preparing database.")
+        if self.trackP:
+            print("Directory submitted. Preparing database.")
 
         if self.directory != "":
             worker = Worker(self.prepareDatabase, self.directory)
@@ -298,7 +301,8 @@ class UI(QMainWindow):
         else:
             # self.textBrowser.setStyleSheet("color: red;"
             #                                "font: 10pt")
-            self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: File Directory field is required.</p>")
+            self.textBrowser.append(
+                "<p style='color:red; margin:0; padding:0'>ERROR: File Directory field is required.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
     def filterData(self):
@@ -310,10 +314,12 @@ class UI(QMainWindow):
         self.fileCB.addItem("Select a File")
 
         if not self.filterAllowed:
-            self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: No filters to submit. Create a database first.</p>")
+            self.textBrowser.append(
+                "<p style='color:red; margin:0; padding:0'>ERROR: No filters to submit. Create a database first.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         elif self.eminSB.value() > self.emaxSB.value():
-            self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: Energy maximum cannot be less than energy minimum.</p>")
+            self.textBrowser.append(
+                "<p style='color:red; margin:0; padding:0'>ERROR: Energy maximum cannot be less than energy minimum.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
             pixmap = QtGui.QPixmap("white.png")
@@ -362,14 +368,14 @@ class UI(QMainWindow):
                 xresolution = [self.xresSB.value()]
             else:
                 self.xres = False
-                xresolution = list(range(0,1000))
+                xresolution = list(range(0, 1000))
 
             if self.yresSB.value() != 0:
                 self.yres = True
                 yresolution = [self.xresSB.value()]
             else:
                 self.yres = False
-                yresolution = list(range(0,1000))
+                yresolution = list(range(0, 1000))
 
             if self.xrangeSB.value() != 0:
                 self.xrange = True
@@ -394,11 +400,11 @@ class UI(QMainWindow):
 
             emin = self.eminSB.value()
 
-
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
-                and not self.xres and not self.yres and not self.energy):
+                    and not self.xres and not self.yres and not self.energy):
                 self.textBrowser.append("<p style='color:black; margin:0; padding:0'>No filters applied.</p>")
-                self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Default values may not be used as filters.</p>")
+                self.textBrowser.append(
+                    "<p style='color:black; margin:0; padding:0'>Default values may not be used as filters.</p>")
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             filtered = self.collection.find({"scan_type": {"$in": scan},
@@ -416,7 +422,6 @@ class UI(QMainWindow):
             for item in filtered:
                 self.fileCB.addItem(item['name'])
 
-
     def trackProgress(self, progress):
         '''
         Displays progress of database creation to screen
@@ -424,7 +429,7 @@ class UI(QMainWindow):
         '''
         self.progBar.setValue(progress)
 
-        if self.trackP == True:
+        if self.trackP:
             print(f"Database creation: {progress}%", end="\r")
             if progress == 100:
                 print(end="\n")
@@ -529,9 +534,10 @@ class UI(QMainWindow):
                     i += 1
 
             except Exception as e:
-                self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
-                # self.textBrowser.append(name)
-                self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                # self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
+                # # self.textBrowser.append(name)
+                # self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                pass
             else:
                 try:
                     # store entry in db
@@ -550,16 +556,17 @@ class UI(QMainWindow):
                                                          })
 
                 except Exception as e:
-                    self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
-                    # self.textBrowser.append(name)
-                    self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    # self.textBrowser.append("<p style='color:red; margin:0; padding:0'>ERROR: " + str(e) + "</p>")
+                    # # self.textBrowser.append(name)
+                    # self.textBrowser.moveCursor(QtGui.QTextCursor.End)
+                    pass
             finally:
                 # clean up
                 f.close()
 
-            self.textBrowser.moveCursor(QtGui.QTextCursor.End)
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
+
 
 def parse(args):
     try:
@@ -596,12 +603,10 @@ def parse(args):
 def main():
     app = QApplication(sys.argv)
     UIWindow = UI()
-    args = sys.argv[1:]
-    if not args:
+    if not sys.argv[1:]:
         UIWindow.show()
-    directory, progress = parse(args)
-    print (directory, progress)
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
