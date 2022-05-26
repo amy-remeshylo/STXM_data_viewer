@@ -252,12 +252,10 @@ class UI(QMainWindow):
         date_str = datetime.datetime.strftime(date_dt, "%b %d %Y, %H:%M")
 
         # set tool tip text
-        # self.imgLBL.setToolTip(f"<b>Scan Type:</b> {db_file['scan_type']}\n"
-        #                        f"<b>Energy:</b> {db_file['energy_min']} - {db_file['energy_max']} eV\n"
-        #                        f"<b>Date:</b> {date_str}")
-        self.imgLBL.setToolTip(f"Scan Type: {db_file['scan_type']}\n"
-                               f"Energy: {db_file['energy_min']} - {db_file['energy_max']} eV\n"
-                               f"Date: {date_str}\n")
+        self.imgLBL.setToolTip(f"<b>Scan Type:</b> {db_file['scan_type']}<br></br>"
+                               f"<b>Energy:</b> {db_file['energy_min']} - {db_file['energy_max']} eV<br></br>"
+                               f"<b>Date:</b> {date_str}")
+
         # show tool tip for 30s
         self.imgLBL.setToolTipDuration(30000)
 
@@ -275,6 +273,7 @@ class UI(QMainWindow):
         self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Database ready.</p>")
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
+        # conditions for command line args
         if self.trackP:
             print("Database ready.")
 
@@ -283,6 +282,9 @@ class UI(QMainWindow):
 
         # allow filtering
         self.filterAllowed = True
+
+        # hide progress bar
+        self.progressBar.hide()
 
     def submit_database(self):
         '''
