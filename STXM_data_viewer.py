@@ -10,8 +10,7 @@ from PIL import Image, ImageOps
 from PyQt5 import QtGui
 from PyQt5 import uic
 from PyQt5.QtCore import QRunnable, pyqtSignal, QObject, QThreadPool
-from PyQt5.QtWidgets import QToolButton, QLineEdit, QComboBox, QFileDialog, QGroupBox, QTextBrowser, QMainWindow, \
-    QApplication, QPushButton, QLabel, QDateTimeEdit, QSpinBox, QProgressBar
+from PyQt5.QtWidgets import QFileDialog, QMainWindow, QApplication
 from pymongo import MongoClient
 
 USAGE = f"Usage: python {sys.argv[0]} [--help] | [-v] [--version] [-p] [--progress] [-d <dir>] [--directory <dir>]"
@@ -270,7 +269,7 @@ class UI(QMainWindow):
         for item in self.collection.find({}):
             self.fileCB.addItem(item["name"])
 
-        self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Database ready.</p>")
+        self.textBrowser.append(self.format_msg("log_msg", "Database ready."))
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
         # conditions for command line args
@@ -290,8 +289,7 @@ class UI(QMainWindow):
         '''
         Creates a thread for database preparation and updates status on log
         '''
-        self.textBrowser.append(
-            "<p style='color:black; margin:0; padding:0'>Directory submitted. Preparing database.</p>")
+        self.textBrowser.append(self.format_msg("log_msg", "Directory submitted. Preparing database."))
         self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
         if self.trackP:
@@ -312,8 +310,7 @@ class UI(QMainWindow):
 
         # no directory specified
         else:
-            self.textBrowser.append(
-                "<p style='color:red; margin:0; padding:0'>ERROR: File Directory field is required.</p>")
+            self.textBrowser.append(self.format_msg("log_error", "ERROR: File Directory field is required."))
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
     def filter_data(self):
@@ -325,18 +322,16 @@ class UI(QMainWindow):
         self.fileCB.addItem("Select a File")
 
         if not self.filterAllowed:
-            self.textBrowser.append(
-                "<p style='color:red; margin:0; padding:0'>ERROR: No filters to submit. Create a database first.</p>")
+            self.textBrowser.append(self.format_msg("log_error", "ERROR: No filters to submit. Create a database first."))
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         elif self.eminSB.value() > self.emaxSB.value():
-            self.textBrowser.append(
-                "<p style='color:red; margin:0; padding:0'>ERROR: Energy maximum cannot be less than energy minimum.</p>")
+            self.textBrowser.append(self.format_msg("log_error", "ERROR: Energy maximum cannot be less than energy minimum."))
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
         else:
             pixmap = QtGui.QPixmap("white.png")
             self.imgLBL.setPixmap(pixmap)
 
-            self.textBrowser.append("<p style='color:black; margin:0; padding:0'>Filters submitted.</p>")
+            self.textBrowser.append(self.format_msg("log_msg", "Filters submitted."))
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             if self.scanCB.currentText() != "Scan Type...":
@@ -413,9 +408,8 @@ class UI(QMainWindow):
 
             if (not self.scan_type and not self.start_date and not self.end_date and not self.xrange and not self.yrange
                     and not self.xres and not self.yres and not self.energy):
-                self.textBrowser.append("<p style='color:black; margin:0; padding:0'>No filters applied.</p>")
-                self.textBrowser.append(
-                    "<p style='color:black; margin:0; padding:0'>Default values may not be used as filters.</p>")
+                self.textBrowser.append(self.format_msg("log_msg", "No filters applied."))
+                self.textBrowser.append(self.format_msg("log_msg", "Default values may not be used as filters."))
                 self.textBrowser.moveCursor(QtGui.QTextCursor.End)
 
             filtered = self.collection.find({"scan_type": {"$in": scan},
@@ -566,6 +560,21 @@ class UI(QMainWindow):
 
             progress_callback.emit(int((index / max_index) * 100))
             index += 1
+
+    def format_msg(self, format, msg):
+        '''
+        Provides markup tags to messages based on specified formats
+        :param format: the formatting rule to follow, as a string. One of "log_msg", "log_error".
+        :param msg: the message to be formatted, as a string
+        :return: the formatted message, as a string
+        '''
+        if format == "log_msg":
+            msg = "<p style='color:black; margin:0; padding:0'>" + msg + "</p>"
+        elif format == "log_error":
+            msg = "<p style='color:red; margin:0; padding:0'>" + msg + "</p>"
+        else:
+            pass
+        return msg
 
 
 def main():
