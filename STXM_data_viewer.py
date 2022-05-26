@@ -246,6 +246,21 @@ class UI(QMainWindow):
         # display pixmap
         self.imgLBL.setPixmap(pixmap)
 
+        # rearrange start data to a viewable form
+        date = db_file['start_time']
+        date_dt = datetime.datetime.strptime(str(date), "%Y%m%d%H%M")
+        date_str = datetime.datetime.strftime(date_dt, "%b %d %Y, %H:%M")
+
+        # set tool tip text
+        # self.imgLBL.setToolTip(f"<b>Scan Type:</b> {db_file['scan_type']}\n"
+        #                        f"<b>Energy:</b> {db_file['energy_min']} - {db_file['energy_max']} eV\n"
+        #                        f"<b>Date:</b> {date_str}")
+        self.imgLBL.setToolTip(f"Scan Type: {db_file['scan_type']}\n"
+                               f"Energy: {db_file['energy_min']} - {db_file['energy_max']} eV\n"
+                               f"Date: {date_str}\n")
+        # show tool tip for 30s
+        self.imgLBL.setToolTipDuration(30000)
+
     def thread_finished(self):
         '''
         Declares the thread finished on the log and allows filtering of database files
@@ -295,8 +310,6 @@ class UI(QMainWindow):
 
         # no directory specified
         else:
-            # self.textBrowser.setStyleSheet("color: red;"
-            #                                "font: 10pt")
             self.textBrowser.append(
                 "<p style='color:red; margin:0; padding:0'>ERROR: File Directory field is required.</p>")
             self.textBrowser.moveCursor(QtGui.QTextCursor.End)
